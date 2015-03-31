@@ -15,21 +15,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//Global Value
-
-//Cache Globals
-int dSize; //Cache Suze
-int dWay; //Type of Associative
-int dBSize; //Block Size
-int iSize;
-int iWay;
-int iBSize;
-int l2Size;
-int l2Way;
-int l2BSize;
-int memnRTime; //Memory Ready Time
-int memCSize;  //Memory Chunk Size
-int memCTime;  //Memory Chunk Time
 
 //Simulation Globals
 unsigned long long int executionTime;
@@ -44,12 +29,6 @@ unsigned long long int l1dHits;
 //TODO Add the Rest of the Variables 
 
 
-//Print the Final Report
-void printOutput(){
-
-    
-}
-
 int main(int argc, char **argv){
 
     
@@ -63,9 +42,6 @@ int main(int argc, char **argv){
 
    }
     
-   printOutput();
-
-
    return 0;
 
 }
