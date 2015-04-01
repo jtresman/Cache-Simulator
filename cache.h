@@ -34,50 +34,16 @@
 #define MEM_CHUNCKSIZE 8
 
 
-//Cache Line Structure
-typedef struct cache_line_ {
-  unsigned int tag;
-  unsigned int index;
-  unsigned int byte;
-  int valid;
+//Cache Entry Structure
+typedef struct cache_entry {
+  unsigned long int address;
   int dirty;
-  struct cache_line_ *LRU_next;
-  struct cache_line_ *LRU_prev;
-} cache_line_, *Pcache_line;
-
-//Cache Structure
-typedef struct cache_ {
-  int size;			
-  int associativity;		
-  int n_sets;			
-  unsigned index_mask;		
-  int index_mask_offset;	
-  Pcache_line *LRU_head;	
-  Pcache_line *LRU_tail;	
-  int *set_contents;		/* number of valid entries in set */
-  int contents;			/* number of valid entries in cache */
-} cache, *Pcache;
-
-//Not Sure If I'll keep this yet
-// typedef struct cache_stat_ {
-  // int accesses;			/* number of memory references */
-  // int misses;			/* number of cache misses */
-  // int replacements;		/* number of misses that cause replacments */
-  // int demand_fetches;		/* number of fetches */
-  // int copies_back;		/* number of write backs */
-// } cache_stat, *Pcache_stat;
-
+} cache_entry;
 
 /* function prototypes */
-void set_cache_param();
 void init_cache();
 void perform_access();
 void flush();
-void delete();
 void insert();
 void dump_settings();
 void print_stats();
-
-
-/* macros */
-#define LOG2(x) ((int) rint((log((double) (x))) / (log(2.0))))
