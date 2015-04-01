@@ -15,14 +15,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "main.h"
-
+#include "cache.h"
 
 int main(int argc, char **argv){
 
    char op;
    unsigned long int address;
    unsigned int bytesize;
-    
+   
+   cache_entry l1_icache[l1_ 
+   
    while(scanf("%c %Lx %d\n,&op,&address,&bytesize) == 3){
 
        //Do stuff Here

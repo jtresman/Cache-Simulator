@@ -12,7 +12,7 @@
 #define WORD_SIZE_OFFSET 2
 
 //Default L1 Cache Parameters
-#define L1_DEFAULT_CACHE_SIZE 9192
+#define L1_DEFAULT_CACHE_SIZE 8192
 #define L1_DEFAULT_CACHE_BLOCK_SIZE 32
 #define L1_DEFAULT_CACHE_ASSOC 1
 #define L1_HIT_TIME 1
@@ -36,11 +36,14 @@
 
 //Cache Entry Structure
 typedef struct cache_entry {
-  unsigned long int address;
-  int dirty;
+    unsigned long long int tag;
+    int valid; 
+    int dirty;
+    cache_entry *next;
+    cache_entry *prev;
 } cache_entry;
 
-/* function prototypes */
+// Function Prototypes
 void init_cache();
 void perform_access();
 void flush();
