@@ -27,10 +27,6 @@ static int l2_words_per_block = L2_DEFAULT_CACHE_BLOCK_SIZE / WORD_SIZE;
 static int l1_cache_assoc = L1_DEFAULT_CACHE_ASSOC;
 static int l2_cache_assoc = L2_DEFAULT_CACHE_ASSOC;
 
-cache_entry **l1_icache;
-cache_entry **l1_dcache;
-cache_entry **l2_cache;
-
 /************************************************************/
 
 void init_cache() {
