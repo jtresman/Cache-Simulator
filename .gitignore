@@ -19,3 +19,12 @@
  *.rar
  *.tar
  *.zip
+
+ #Folders #
+ #
+  Traces/
+  readme
+  sample-output/
+  traces-1M/
+  traces-5M/
+  traces-long/
