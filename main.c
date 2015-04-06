@@ -48,6 +48,76 @@ int main(int argc, char **argv){
 }
 
 void print_stats() {
+    printf("SIMULATION RESULTS\n");
+    printf("\n");
+    printf("Memory system:\n");
+    printf("    Dcache size = %d : ways = %d : block size = %d\n", a,b,c);
+    printf("    Icache size = %d : ways = %d : block size = %d\n", a,b,c);
+    printf("    L2-cache size = %d : ways = %d : block size = %d\n",a,b,c);
+    printf("    Memory ready time = %d : chunksize = %d : chunktime = %d\n",a,b,c);
+    printf("\n");
+    printf("Execute time =          %d;  Total refs = %d\n",a,b);
+    printf("Flush time =            %d\n",a);
+    printf("Inst refs = %d;  Data refs = %d\n",a,b);
+    printf("\n");
+    printf("Number of reference types:  [Percentage]\n");
+    printf("    Reads  =           %d    [%3.1f%]\n",a,b);
+    printf("    Writes =           %d    [%3.1f%]\n",a,b);
+    printf("    Inst.  =           %d    [%3.1f%]\n",a,b);
+    printf("    Total  =          %d\n",a+b+c);
+    printf("\n");
+    printf("Total cycles for activities:  [Percentage]\n");
+    printf("    Reads  =           %d    [%3.1f%]\n",a,b);
+    printf("    Writes =           %d    [%3.1f%]\n"a,b);
+    printf("    Inst.  =           %d    [%3.1f%]\n"a,b);
+    printf("    Total  =           %d\n",a+b+c);
+    printf("\n");
+    printf("Average cycles per activity:\n");
+    printf("    Read =  N/A; Write = %3.1f; Inst. = %3.1f\n",a,b);
+    printf("Ideal: Exec. Time = %d; CPI =  %2.1f\n",a,b);
+    printf("Ideal mis-aligned: Exec. Time = %d; CPI =  %2.1f\n",a,b);
+    printf("\n");
+    printf("Memory Level:  L1i\n");
+    printf("    Hit Count = %d  Miss Count = %d\n",a,b);
+    printf("    Total Requests = %d\n",a);
+    printf("    Hit Rate = %3.1f%   Miss Rate = %3.1f%\n"a,b);
+    printf("    Kickouts = %d; Dirty kickouts = %d; Transfers = %d\n",a,b,c);
+    printf("    Flush Kickouts = %d\n");
+    printf("\n");
+    printf("Memory Level:  L1d\n");
+    printf("    Hit Count = %d  Miss Count = %d\n",a,b);
+    printf("    Total Requests = %d\n",a);
+    printf("    Hit Rate = %3.1f%   Miss Rate = %3.1f%\n",a,b);
+    printf("    Kickouts = %d; Dirty kickouts = %d; Transfers = %d\n",a,b,c);
+    printf("    Flush Kickouts = %d\n",a);
+    printf("\n");
+    printf("Memory Level:  L2\n");
+    printf("    Hit Count = %d  Miss Count = %d\n",a,b);
+    printf("    Total Requests = %d\n",a);
+    printf("    Hit Rate =  %3.1%   Miss Rate = %4.1f%\n"
+    printf("    Kickouts = %d; Dirty kickouts = %d; Transfers = %d\n",a,b,c);
+    printf("    Flush Kickouts = %d\n");
+    printf("\n");
+    printf("L1 cache cost (Icache $%d) + (Dcache $%d) = $%d\n",a,b,c);
+    printf("L2 cache cost = $%d;  Memory cost = $%d  Total cost = $%d\n",a,b,c);
+    printf("Flushes = %d : Invalidates = %d\n",a,b);
+    printf("\n");
+    printf("-------------------------------------------------------------\n");
+    printf("\n");
+    printf("Cache final contents - Index and Tag values are in HEX\n");
+    printf("\n");
+    printf("Memory Level:  L1i\n")
+    printf("Index:    %x | V:%d D:%d Tag:    %x | V:%d D:%d Tag: - |\n",a,b,c,d,e,f); 
+    printf("Index:    %x | V:%d D:%d Tag:    %x | V:%d D:%d Tag: - |\n",a,b,c,d,e,f);
+    printf("\n");
+    printf("Memory Level:  L1d\n");
+    printf("Index:    %x | V:%d D:%d Tag:    %x | V:%d D:%d Tag: - |\n",a,b,c,d,e,f); 
+    printf("\n");
+    printf("Memory Level:  L2\n");
+    printf("Index:   %x | V:%d D:%d Tag:     %x |\n",a,b,c,d); 
+    printf("Index:   %x | V:%d D:%d Tag:     %x |\n",a,b,c,d); 
+    printf("Index:   %x | V:%d D:%d Tag:     %x |\n",a,b,c,d);
+
 
     //TODO Change to Correct Formating   
     printf("\n*** CACHE STATISTICS ***\n");
