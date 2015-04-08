@@ -166,9 +166,9 @@ void read_data(unsigned long long int addr) {
     
     switch(l1_cache_assoc){
       case 1:
-        index = addr & 0x7f; //cachelined - 1
+        index = (addr >> 4) & 0x7f; //cachelined - 1
         tag = addr & 0xfffffffff800;
-        tag = tag >> 11;
+        tag = tag >> 15;
         if(l1_dcache[index].tag == 0){
           l1_dcache[index].tag = tag;
           l1_dcache[index].address = addr;
@@ -184,7 +184,7 @@ void read_data(unsigned long long int addr) {
   }
 }
 
-void insert_l2(struct cache_entry) {
+void insert_l2(cache_entry curr) {
     
   //   int index;
   //   unsigned long long int tag;
@@ -217,9 +217,10 @@ int check_inst_cache(unsigned long long int addr){
 
 	switch(l1_cache_assoc){
 		case 1:
-      index = addr & 0x7f; //cachelined - 1
+      index = (addr >> 5) & 0x7f; //cachelined - 1
       tag = addr & 0xfffffffff800;
-      tag = tag >> 11;
+      tag = tag >> 15;
+      printf("Tag: %Lx, Index: %#010x\n", tag, index);
 			return l1_icache[index].tag == tag;
 			break;
 		case 2:
@@ -238,9 +239,10 @@ int check_data_cache(unsigned long long int addr){
 
 	switch(l1_cache_assoc){
 		case 1:
-			index = addr & 0x7f; //cachelined - 1
+			index = (addr >> 5) & 0x7f; //cachelined - 1
       tag = addr & 0xfffffffff800;
-      tag = tag >> 11;
+      tag = tag >> 15;
+      printf("Tag: %Lx, Index: %#010x\n", tag, index);
       return l1_dcache[index].tag == tag;
 		case 2:
 		case 4:
@@ -258,9 +260,10 @@ int check_l2_cache(unsigned long long int addr){
 	
   switch(l2_cache_assoc){
 		case 1:
-			index = addr & 0x7f; //cachelined - 1
+			index = (addr >> 5) & 0x7f; //cachelined - 1
       tag = addr & 0xfffffffff800;
-      tag = tag >> 11;
+      tag = tag >> 15;
+      printf("Tag: %Lx, Index: %#010x\n", tag, index);
       return l2_cache[index].tag == tag;
 		case 2:
 		case 4:

@@ -39,8 +39,8 @@ typedef struct cache_entry {
     unsigned long long int address;
     int dirty;
     int valid;
-    cache_entry *next;
-    cache_entry *prev;
+    struct cache_entry *next;
+    struct cache_entry *prev;
 } cache_entry;
 
 // Function Prototypes
