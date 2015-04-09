@@ -14,6 +14,8 @@
 #include <stdio.h>
 #include <math.h>
 #include "cache.h"
+#inclu
+
 
 //Setup Default Cache Parameters
 static int l1_cache_size = L1_DEFAULT_CACHE_SIZE;
@@ -25,19 +27,16 @@ static int l2_words_per_block = L2_DEFAULT_CACHE_BLOCK_SIZE / WORD_SIZE;
 static int l1_cache_assoc = L1_DEFAULT_CACHE_ASSOC;
 static int l2_cache_assoc = L2_DEFAULT_CACHE_ASSOC;
 
-//Cache Globals
- //Simulation Globals
-static unsigned long long int executionTime;
-static unsigned long long int flushTime;
-static unsigned long long int instRefs;
-static unsigned long long int totalReads;
-static unsigned long long int totalsWrites;
-static unsigned long int l1IMisses;
-static unsigned long long int l1IHits;
-static unsigned long int l1DMisses;
-static unsigned long long int l1DHits;
-static unsigned long long int l2Hits;
-static unsigned long long int l2Misses;
+//print calculations
+tot_ref_type = read_ref_type + write_ref_type + inst_ref_type;
+tot_cycle = read_cycle + write_cycle + inst_cycle;
+read_ref_perc = (read_ref_type/tot_ref_type);
+write_ref_perc = (write_ref_type/tot_ref_type);
+inst_ref_perc = (inst_ref_type/tot_ref_type);
+read_cycle_perc = (read_cycle/tot_cycle);
+write_cycle_perc = (write_cycle/tot_cycle);
+inst_cycle_perc = (inst_cycle/tot_cycle);
+
 
 /************************************************************/
 
@@ -274,72 +273,72 @@ void print_stats() {
     // printf("SIMULATION RESULTS\n");
     // printf("\n");
     // printf("Memory system:\n");
-    //printf("    Dcache size = %d : ways = %d : block size = %d\n", l1_cache_size,l1_cache_assoc,l1_cache_block_size);
-    //printf("    Icache size = %d : ways = %d : block size = %d\n", l1_cache_size,l1_cache_assoc,l1_cache_block_size);
-    //printf("    L2-cache size = %d : ways = %d : block size = %d\n",l2_cache_size,l2_cache_assoc,l2_cache_block_size);
-    //printf("    Memory ready time = %d : chunksize = %d : chunktime = %d\n",MEM_READY,MEM_CHUNCKSIZE,MEM_CHUNKTIME);
+    //printf("    Dcache size = %Lx : ways = %Lx : block size = %Lx\n", l1_cache_size,l1_cache_assoc,l1_cache_block_size);
+    //printf("    Icache size = %Lx : ways = %Lx : block size = %Lx\n", l1_cache_size,l1_cache_assoc,l1_cache_block_size);
+    //printf("    L2-cache size = %Lx : ways = %Lx : block size = %Lx\n",l2_cache_size,l2_cache_assoc,l2_cache_block_size);
+    //printf("    Memory ready time = %Lx : chunksize = %Lx : chunktime = %Lx\n",MEM_READY,MEM_CHUNCKSIZE,MEM_CHUNKTIME);
     //printf("\n");
-    //printf("Execute time =          %d;  Total refs = %d\n",executionTime,totalReads + totalWrites);
-    //printf("Flush time =            %d\n",flushTime);
-    //printf("Inst refs = %d;  Data refs = %d\n",instRefs,dataRefs);
+    //printf("Execute time =          %Lx;  Total refs = %Lx\n",executionTime,totalReads + totalWrites);
+    //printf("Flush time =            %Lx\n",flushTime);
+    //printf("Inst refs = %Lx;  Data refs = %Lx\n",instRefs,dataRefs);
     //printf("\n");
     // printf("Number of reference types:  [Percentage]\n");
-    // printf("    Reads  =           %d    [%3.1f%]\n",read_ref_type,read_ref_perc);
-    // printf("    Writes =           %d    [%3.1f%]\n",write_ref_type,write_ref_perc);
-    // printf("    Inst.  =           %d    [%3.1f%]\n",inst_ref_type,inst_ref_perc);
-    // printf("    Total  =          %d\n",read_ref_type + write_ref_type + inst_ref_type);
+    // printf("    Reads  =           %Lx    [%3.1f%%]\n",read_ref_type,read_ref_perc);
+    // printf("    Writes =           %Lx    [%3.1f%%]\n",write_ref_type,write_ref_perc);
+    // printf("    Inst.  =           %Lx    [%3.1f%%]\n",inst_ref_type,inst_ref_perc);
+    // printf("    Total  =          %Lx\n",tot_ref_type);
     // printf("\n");
     // printf("Total cycles for activities:  [Percentage]\n");
-    // printf("    Reads  =           %d    [%3.1f%]\n",read_cycle,read_cycle_perc);
-    // printf("    Writes =           %d    [%3.1f%]\n",write_cycle,write_cycle_perc);
-    // printf("    Inst.  =           %d    [%3.1f%]\n",inst_cycle,inst_cycle_perc);
-    // printf("    Total  =           %d\n",read_cycle + write_cycle + inst_cycle);
+    // printf("    Reads  =           %Lx    [%3.1f%%]\n",read_cycle,read_cycle_perc);
+    // printf("    Writes =           %Lx    [%3.1f%%]\n",write_cycle,write_cycle_perc);
+    // printf("    Inst.  =           %Lx    [%3.1f%%]\n",inst_cycle,inst_cycle_perc);
+    // printf("    Total  =           %Lx\n",tot_cycle);
     // printf("\n");
     // printf("Average cycles per activity:\n");
     // printf("    Read =  N/A; Write = %3.1f; Inst. = %3.1f\n",avg_cyc_write,avg_cyc_inst);
-    // printf("Ideal: Exec. Time = %d; CPI =  %2.1f\n",avg_cyc_exec_time,avg_cyc_cpi);
-    // printf("Ideal mis-aligned: Exec. Time = %d; CPI =  %2.1f\n",avg_cyc_exec_misalign,avg_cyc_cpi_misalign);
+    // printf("Ideal: Exec. Time = %Lx; CPI =  %2.1f\n",avg_cyc_exec_time,avg_cyc_cpi);
+    // printf("Ideal mis-aligned: Exec. Time = %Lx; CPI =  %2.1f\n",avg_cyc_exec_misalign,avg_cyc_cpi_misalign);
     // printf("\n");
     // printf("Memory Level:  L1i\n");
-    // printf("    Hit Count = %d  Miss Count = %d\n",l1IHits,l1IMisses);
-    // printf("    Total Requests = %d\n",l1ItotalReq);
-    // printf("    Hit Rate = %3.1f%   Miss Rate = %3.1f%\n",l1IhitRate,l1ImissRate);
-    // printf("    Kickouts = %d; Dirty kickouts = %d; Transfers = %d\n",l1Ikickouts,l1Ikickouts_dirty,l1Itransfers);
-    // printf("    Flush Kickouts = %d\n", l1Ikickouts_flush);
+    // printf("    Hit Count = %Lx  Miss Count = %Lx\n",l1IHits,l1IMisses);
+    // printf("    Total Requests = %Lx\n",l1ItotalReq);
+    // printf("    Hit Rate = %3.1f%%   Miss Rate = %3.1f%%\n",l1IhitRate,l1ImissRate);
+    // printf("    Kickouts = %Lx; Dirty kickouts = %Lx; Transfers = %Lx\n",l1Ikickouts,l1Ikickouts_dirty,l1Itransfers);
+    // printf("    Flush Kickouts = %Lx\n", l1Ikickouts_flush);
     // printf("\n");
     // printf("Memory Level:  L1d\n");
-    // printf("    Hit Count = %d  Miss Count = %d\n",l1DHits,l1DMisses);
-    // printf("    Total Requests = %d\n",l1DtotalReq);
-    // printf("    Hit Rate = %3.1f%   Miss Rate = %3.1f%\n",l1DhitRate,l1ImissRate);
-    // printf("    Kickouts = %d; Dirty kickouts = %d; Transfers = %d\n",l1Ikickouts,l1Ikickouts_dirty,l1Itransfers);
-    // printf("    Flush Kickouts = %d\n",l1Dkickouts_flush);
+    // printf("    Hit Count = %Lx  Miss Count = %Lx\n",l1DHits,l1DMisses);
+    // printf("    Total Requests = %Lx\n",l1DtotalReq);
+    // printf("    Hit Rate = %3.1f%%   Miss Rate = %3.1f%%\n",l1DhitRate,l1ImissRate);
+    // printf("    Kickouts = %Lx; Dirty kickouts = %Lx; Transfers = %Lx\n",l1Ikickouts,l1Ikickouts_dirty,l1Itransfers);
+    // printf("    Flush Kickouts = %Lx\n",l1Dkickouts_flush);
     // printf("\n");
     // printf("Memory Level:  L2\n");
-    // printf("    Hit Count = %d  Miss Count = %d\n",l2Hits,l2Misses);
-    // printf("    Total Requests = %d\n",l2totalReq);
-    // printf("    Hit Rate =  %3.1%   Miss Rate = %4.1f%\n",l2hitRate,l2missRate);
-    // printf("    Kickouts = %d; Dirty kickouts = %d; Transfers = %d\n",l2kickouts,l2kickouts_dirty,l2transfers);
-    // printf("    Flush Kickouts = %d\n",l2kickouts_flush);
+    // printf("    Hit Count = %Lx  Miss Count = %Lx\n",l2Hits,l2Misses);
+    // printf("    Total Requests = %Lx\n",l2totalReq);
+    // printf("    Hit Rate =  %3.1f%%   Miss Rate = %4.1f%%\n",l2hitRate,l2missRate);
+    // printf("    Kickouts = %Lx; Dirty kickouts = %Lx; Transfers = %Lx\n",l2kickouts,l2kickouts_dirty,l2transfers);
+    // printf("    Flush Kickouts = %Lx\n",l2kickouts_flush);
     // printf("\n");
-    // printf("L1 cache cost (Icache $%d) + (Dcache $%d) = $%d\n",l1Icost,l1Dcost,l1Icost + l1Dcost);
-    // printf("L2 cache cost = $%d;  Memory cost = $%d  Total cost = $%d\n",l2cost,memcost,totcost);
-    // printf("Flushes = %d : Invalidates = %d\n",flushes,invalidates);
+    // printf("L1 cache cost (Icache $%Lx) + (Dcache $%Lx) = $%Lx\n",l1Icost,l1Dcost,l1Icost + l1Dcost);
+    // printf("L2 cache cost = $%Lx;  Memory cost = $%Lx  Total cost = $%Lx\n",l2cost,memcost,totcost);
+    // printf("Flushes = %Lx : Invalidates = %Lx\n",flushes,invalidates);
     // printf("\n");
     // printf("-------------------------------------------------------------\n");
     // printf("\n");
     // printf("Cache final contents - Index and Tag values are in HEX\n");
     // printf("\n");
     // printf("Memory Level:  L1i\n")
-    // printf("Index:    %x | V:%d D:%d Tag:    %x | V:%d D:%d Tag: - |\n",a,b,c,d,e,f); 
-    // printf("Index:    %x | V:%d D:%d Tag:    %x | V:%d D:%d Tag: - |\n",a,b,c,d,e,f);
+    // printf("Index:    %x | V:%Lx D:%Lx Tag:    %x | V:%Lx D:%Lx Tag: - |\n",a,b,c,d,e,f); 
+    // printf("Index:    %x | V:%Lx D:%Lx Tag:    %x | V:%Lx D:%Lx Tag: - |\n",a,b,c,d,e,f);
     // printf("\n");
     // printf("Memory Level:  L1d\n");
-    // printf("Index:    %x | V:%d D:%d Tag:    %x | V:%d D:%d Tag: - |\n",a,b,c,d,e,f); 
+    // printf("Index:    %x | V:%Lx D:%Lx Tag:    %x | V:%Lx D:%Lx Tag: - |\n",a,b,c,d,e,f); 
     // printf("\n");
     // printf("Memory Level:  L2\n");
-    // printf("Index:   %x | V:%d D:%d Tag:     %x |\n",a,b,c,d); 
-    // printf("Index:   %x | V:%d D:%d Tag:     %x |\n",a,b,c,d); 
-    // printf("Index:   %x | V:%d D:%d Tag:     %x |\n",a,b,c,d);
+    // printf("Index:   %x | V:%Lx D:%Lx Tag:     %x |\n",a,b,c,d); 
+    // printf("Index:   %x | V:%Lx D:%Lx Tag:     %x |\n",a,b,c,d); 
+    // printf("Index:   %x | V:%Lx D:%Lx Tag:     %x |\n",a,b,c,d);
 }
 
 /************************************************************/
