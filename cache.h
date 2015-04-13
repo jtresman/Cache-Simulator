@@ -14,7 +14,7 @@
 //Default L1 Cache Parameters
 #define L1_DEFAULT_CACHE_SIZE 8192
 #define L1_DEFAULT_CACHE_BLOCK_SIZE 32
-#define L1_DEFAULT_CACHE_ASSOC 1
+#define L1_DEFAULT_CACHE_ASSOC 2
 #define L1_HIT_TIME 1
 #define L1_MISS_TIME 1
 
@@ -34,14 +34,14 @@
 #define MEM_CHUNCKSIZE 8
 
 //Setup Default Cache Parameters
-static int l1_cache_size = L1_DEFAULT_CACHE_SIZE;
-static int l2_cache_size = L2_DEFAULT_CACHE_SIZE; 
-static int l1_cache_block_size = L1_DEFAULT_CACHE_BLOCK_SIZE;
-static int l2_cache_block_size = L2_DEFAULT_CACHE_BLOCK_SIZE;
-static int l1_words_per_block = L1_DEFAULT_CACHE_BLOCK_SIZE / WORD_SIZE;
-static int l2_words_per_block = L2_DEFAULT_CACHE_BLOCK_SIZE / WORD_SIZE;
-static int l1_cache_assoc = L1_DEFAULT_CACHE_ASSOC;
-static int l2_cache_assoc = L2_DEFAULT_CACHE_ASSOC;
+int l1_cache_size;
+int l2_cache_size; 
+int l1_cache_block_size;
+int l2_cache_block_size;
+// int l1_words_per_block = L1_DEFAULT_CACHE_BLOCK_SIZE / WORD_SIZE;
+// int l2_words_per_block = L2_DEFAULT_CACHE_BLOCK_SIZE / WORD_SIZE;
+int l1_cache_assoc;
+int l2_cache_assoc;
 
  //Simulation Globals
 unsigned long long int execution_time;
@@ -73,9 +73,9 @@ typedef struct cache_entry {
     struct cache_entry *prev;
 } cache_entry;
 
-struct cache_entry *l1_icache[256];
-struct cache_entry *l1_dcache[256];
-struct cache_entry *l2_cache[512];
+struct cache_entry **l1_icache;
+struct cache_entry **l1_dcache;
+struct cache_entry **l2_cache;
 
 // Function Prototypes
 void init_cache();
