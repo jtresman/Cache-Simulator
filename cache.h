@@ -5,6 +5,8 @@
  *  defaults for Main Memory.
  *
  * Author: Jacob Resman and Healy Fuess
+ *
+ ******************************************************
  */
 
 // Default Cache Parameters
@@ -93,4 +95,3 @@ void adjust_LRU_l1i(unsigned long long int addr);
 void adjust_LRU_l1d(unsigned long long int addr);
 void adjust_LRU_l2(unsigned long long int addr);
 void print_stats();
-
