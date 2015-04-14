@@ -1,0 +1,5 @@
+Config file: L2-four-way
+L1 Cache size : 8192
+L2 Cache size : 32768
+L1 Type : 2
+L2 Type : 4

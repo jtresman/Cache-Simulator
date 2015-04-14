@@ -1,0 +1,3 @@
+Config file: L1-two-way
+L1 Cache size : 8192
+L1 Type : 2
