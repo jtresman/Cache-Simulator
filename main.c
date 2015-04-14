@@ -23,7 +23,17 @@ int main(int argc, char **argv){
     unsigned long long int address;
     unsigned int bytesize;
 
+    if (argc != 2){
+        l1_cache_size = L1_DEFAULT_CACHE_SIZE;
+        l2_cache_size = L2_DEFAULT_CACHE_SIZE; 
+        l1_cache_block_size = L1_DEFAULT_CACHE_BLOCK_SIZE;
+        l2_cache_block_size = L2_DEFAULT_CACHE_BLOCK_SIZE;
+        l1_cache_assoc = L1_DEFAULT_CACHE_ASSOC;
+        l2_cache_assoc = L2_DEFAULT_CACHE_ASSOC;
+    }
+    
     init_cache();
+
 
     while(scanf("%c %Lx %d\n",&op,&address,&bytesize) == 3){
 
