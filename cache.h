@@ -74,7 +74,7 @@ unsigned long long int invalidates;
 //Default L1 Cache Parameters
 #define L1_DEFAULT_CACHE_SIZE 8192
 #define L1_DEFAULT_CACHE_BLOCK_SIZE 32
-#define L1_DEFAULT_CACHE_ASSOC 2
+#define L1_DEFAULT_CACHE_ASSOC 1
 #define L1_HIT_TIME 1
 #define L1_MISS_TIME 1
 

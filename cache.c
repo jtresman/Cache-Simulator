@@ -214,14 +214,42 @@ void insert_inst(unsigned long long int addr) {
         case 4:
             index = (addr>>5) & (l1_cache_lines-1); //cachelined - 1
             tag = addr >> 11;
-            l1_icache[index]->tag = tag;
-            l1_icache[index]->address = addr;
+            curr = l1_icache[index];
+            new = malloc(sizeof(cache_entry));
+            //Setup New Cache Entry
+            new->tag = tag;
+            new->address = addr;
+            new->next = curr;
+            curr->prev = new;
+
+            //Grab the Last Element
+            while (curr->next != NULL){
+                curr = curr->next;
+            }
+
+            curr->prev->next = NULL;
+            free(curr);
+            l1_icache[index] = new;
             break;
         case 8:
             index = (addr>>5) & (l1_cache_lines-1); //cachelined - 1
             tag = addr >> 10;
-            l1_icache[index]->tag = tag;
-            l1_icache[index]->address = addr;
+            curr = l1_icache[index];
+            new = malloc(sizeof(cache_entry));
+            //Setup New Cache Entry
+            new->tag = tag;
+            new->address = addr;
+            new->next = curr;
+            curr->prev = new;
+
+            //Grab the Last Element
+            while (curr->next != NULL){
+                curr = curr->next;
+            }
+
+            curr->prev->next = NULL;
+            free(curr);
+            l1_icache[index] = new;
             break;
         default:
             printf("Default values \n");
@@ -290,8 +318,75 @@ void write_data(unsigned long long int addr) {
             } 
             break;
         case 4:
+            index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
+            tag = addr >> 11;
+            if(l1_dcache[index]->tag == 0){
+                l1_dcache[index]->tag = tag;
+                l1_dcache[index]->address = addr;
+                l1_dcache[index]->dirty = 1;
+            } else {
+                curr = l1_dcache[index];
+                new = malloc(sizeof(cache_entry));
+                //Setup New Cache Entry
+                new->tag = tag;
+                new->address = addr;
+                new->next = curr;
+                new->dirty = 1;
+                curr->prev = new;
+
+                //Grab the Last Element
+                while (curr->next != NULL){
+                    curr = curr->next;
+                }
+
+                if (curr->tag != 0 && curr->dirty){
+                    //If the LRU is Dirty Write Back to L2
+                    printf("We need to replace!\n");
+                    insert_l2(curr->address, curr->dirty);
+                    //Calcuate Write to L2   
+                } 
+
+                curr->prev->next = NULL;
+                free(curr);
+                l1_dcache[index] = new;
+            } 
+            break;
+        case 8:
+            index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
+            tag = addr >> 11;
+            if(l1_dcache[index]->tag == 0){
+                l1_dcache[index]->tag = tag;
+                l1_dcache[index]->address = addr;
+                l1_dcache[index]->dirty = 1;
+            } else {
+                curr = l1_dcache[index];
+                new = malloc(sizeof(cache_entry));
+                //Setup New Cache Entry
+                new->tag = tag;
+                new->address = addr;
+                new->next = curr;
+                new->dirty = 1;
+                curr->prev = new;
+
+                //Grab the Last Element
+                while (curr->next != NULL){
+                    curr = curr->next;
+                }
+
+                if (curr->tag != 0 && curr->dirty){
+                    //If the LRU is Dirty Write Back to L2
+                    printf("We need to replace!\n");
+                    insert_l2(curr->address, curr->dirty);
+                    //Calcuate Write to L2   
+                } 
+
+                curr->prev->next = NULL;
+                free(curr);
+                l1_dcache[index] = new;
+            } 
+            break;
         default:
-            printf("Default values \n");
+            printf("Full Associative\n");
     }
 }
 
@@ -356,6 +451,71 @@ void read_data(unsigned long long int addr, int dirty) {
             }
             break;
         case 4:
+            index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
+            tag = addr >> 11;
+            if(l1_dcache[index]->tag == 0){
+                l1_dcache[index]->tag = tag;
+                l1_dcache[index]->address = addr;
+                l1_dcache[index]->dirty = 1;
+            } else {
+                curr = l1_dcache[index];
+                new = malloc(sizeof(cache_entry));
+                //Setup New Cache Entry
+                new->tag = tag;
+                new->address = addr;
+                new->next = curr;
+                curr->prev = new;
+
+                //Grab the Last Element
+                while (curr->next != NULL){
+                    curr = curr->next;
+                }
+
+                if (curr->tag != 0 && curr->dirty){
+                    //If the LRU is Dirty Write Back to L2
+                    printf("We need to replace!\n");
+                    insert_l2(curr->address, curr->dirty);
+                    //Calcuate Write to L2   
+                } 
+
+                curr->prev->next = NULL;
+                free(curr);
+                l1_dcache[index] = new;
+            }
+            break;
+        case 8:
+            index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
+            tag = addr >> 10;
+            if(l1_dcache[index]->tag == 0){
+                l1_dcache[index]->tag = tag;
+                l1_dcache[index]->address = addr;
+                l1_dcache[index]->dirty = 1;
+            } else {
+                curr = l1_dcache[index];
+                new = malloc(sizeof(cache_entry));
+                //Setup New Cache Entry
+                new->tag = tag;
+                new->address = addr;
+                new->next = curr;
+                curr->prev = new;
+
+                //Grab the Last Element
+                while (curr->next != NULL){
+                    curr = curr->next;
+                }
+
+                if (curr->tag != 0 && curr->dirty){
+                    //If the LRU is Dirty Write Back to L2
+                    printf("We need to replace!\n");
+                    insert_l2(curr->address, curr->dirty);
+                    //Calcuate Write to L2   
+                } 
+
+                curr->prev->next = NULL;
+                free(curr);
+                l1_dcache[index] = new;
+            }
+            break;
         default:
             printf("Default values \n");
     }
@@ -365,6 +525,8 @@ void insert_l2(unsigned long long int addr, int dirty) {
 
     int index;
     unsigned long long int tag;
+    cache_entry *curr;
+    cache_entry * new;
 
     switch(l2_cache_assoc){
         case 1:
@@ -385,6 +547,36 @@ void insert_l2(unsigned long long int addr, int dirty) {
             } 
             break;
         case 2:
+            index = (addr >> 6) & (l1_cache_lines-1); //cachelined - 1
+            tag = addr >> 14;
+            if(l2_cache[index]->tag == 0){
+                l2_cache[index]->tag = tag;
+                l2_cache[index]->address = addr;
+                l2_cache[index]->dirty = 1;
+            } else {
+                curr = l2_cache[index];
+                new = malloc(sizeof(cache_entry));
+                //Setup New Cache Entry
+                new->tag = tag;
+                new->address = addr;
+                new->next = curr;
+                curr->prev = new;
+
+                //Grab the Last Element
+                while (curr->next != NULL){
+                    curr = curr->next;
+                }
+
+                if (curr->tag != 0 && curr->dirty){
+                    //If the LRU is Dirty Write Back to MM
+                    //Calculate WB to MM   
+                } 
+
+                curr->prev->next = NULL;
+                free(curr);
+                l2_cache[index] = new;
+            }
+            break;
         case 4:
         default:
             printf("Default values \n");
