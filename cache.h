@@ -89,4 +89,8 @@ int  check_inst_cache(unsigned long long int addr);
 int  check_data_cache(unsigned long long int addr);
 int  check_l2_cache(unsigned long long int addr);
 int  is_dirty(unsigned long long int addr);
+void adjust_LRU_l1i(unsigned long long int addr);
+void adjust_LRU_l1d(unsigned long long int addr);
+void adjust_LRU_l2(unsigned long long int addr);
 void print_stats();
+
