@@ -28,8 +28,6 @@ int main(int argc, char **argv){
     if (argc != 2){
         l1_cache_size = L1_DEFAULT_CACHE_SIZE;
         l2_cache_size = L2_DEFAULT_CACHE_SIZE; 
-        l1_cache_block_size = L1_DEFAULT_CACHE_BLOCK_SIZE;
-        l2_cache_block_size = L2_DEFAULT_CACHE_BLOCK_SIZE;
         l1_cache_assoc = L1_DEFAULT_CACHE_ASSOC;
         l2_cache_assoc = L2_DEFAULT_CACHE_ASSOC;
 
@@ -53,8 +51,13 @@ int main(int argc, char **argv){
         fclose(fp);
     }
 
+    l1_cache_block_size = L1_DEFAULT_CACHE_BLOCK_SIZE;
+    l2_cache_block_size = L2_DEFAULT_CACHE_BLOCK_SIZE;
+
+    printf("Init Cache\n");
     init_cache();
 
+    printf("Read Taces\n");
 
     while(scanf("%c %Lx %d\n",&op,&address,&bytesize) == 3){
 

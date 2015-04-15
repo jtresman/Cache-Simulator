@@ -252,7 +252,7 @@ void insert_inst(unsigned long long int addr) {
             l1_icache[index] = new;
             break;
         default:
-            printf("Default values \n");
+            printf("Full Associative Inst\n");
             //Fully Associative
     }
 }
@@ -386,7 +386,7 @@ void write_data(unsigned long long int addr) {
             } 
             break;
         default:
-            printf("Full Associative\n");
+            printf("Full Associative Write Data\n");
     }
 }
 
@@ -517,7 +517,7 @@ void read_data(unsigned long long int addr, int dirty) {
             }
             break;
         default:
-            printf("Default values \n");
+            printf("Full Associative Write Data\n");
     }
 }
 
@@ -547,39 +547,43 @@ void insert_l2(unsigned long long int addr, int dirty) {
             } 
             break;
         case 2:
-            index = (addr >> 6) & (l1_cache_lines-1); //cachelined - 1
+            index = (addr >> 6) & (l2_cache_lines-1); //cachelined - 1
             tag = addr >> 14;
             if(l2_cache[index]->tag == 0){
                 l2_cache[index]->tag = tag;
                 l2_cache[index]->address = addr;
                 l2_cache[index]->dirty = 1;
             } else {
-                curr = l2_cache[index];
-                new = malloc(sizeof(cache_entry));
-                //Setup New Cache Entry
-                new->tag = tag;
-                new->address = addr;
-                new->next = curr;
-                curr->prev = new;
+                printf("Current Tag: %Lx, New Tag: %Lx Valid: %d\n", l2_cache[index]->tag, tag, tag==l2_cache[index]->tag);
+                printf("Check Cache: %d\n",  check_l2_cache(addr));
+                if (!check_l2_cache(addr)){
+                   curr = l2_cache[index];
+                    new = malloc(sizeof(cache_entry));
+                    //Setup New Cache Entry
+                    new->tag = tag;
+                    new->address = addr;
+                    new->next = curr;
+                    curr->prev = new;
 
-                //Grab the Last Element
-                while (curr->next != NULL){
-                    curr = curr->next;
+                    //Grab the Last Element
+                    while (curr->next != NULL){
+                        curr = curr->next;
+                    }
+
+                    if (curr->tag != 0 && curr->dirty){
+                        //If the LRU is Dirty Write Back to MM
+                        //Calculate WB to MM   
+                    } 
+
+                    curr->prev->next = NULL;
+                    free(curr);
+                    l2_cache[index] = new;
                 }
-
-                if (curr->tag != 0 && curr->dirty){
-                    //If the LRU is Dirty Write Back to MM
-                    //Calculate WB to MM   
-                } 
-
-                curr->prev->next = NULL;
-                free(curr);
-                l2_cache[index] = new;
             }
             break;
         case 4:
         default:
-            printf("Default values \n");
+            printf("Full Associative L2\n");
     }
 }
 
@@ -614,7 +618,7 @@ int check_inst_cache(unsigned long long int addr){
             break;
         case 4:
         default: 
-            printf("Default values \n");
+            printf("Fully Associative Check Data \n");
     }
 
     return -1;
@@ -654,7 +658,7 @@ int check_data_cache(unsigned long long int addr){
             break;
         case 4:
         default: 
-            printf("Default values \n");
+            printf("Fully Associative Check Data \n");
     }
 
     return -1;
@@ -664,6 +668,8 @@ int check_l2_cache(unsigned long long int addr){
 
     int index;
     unsigned long long int tag;
+    int i; 
+    cache_entry * curr;
 
     switch(l2_cache_assoc){
         case 1:
@@ -672,10 +678,25 @@ int check_l2_cache(unsigned long long int addr){
             // printf("L2 Curr: Index %x Tag: %Lu\n", index, l2_cache[index]->tag );
             // printf("L2 Tag: %Lx  Index: %x Valid: %d\n",tag, index, l2_cache[index]->tag == tag);
             return l2_cache[index]->tag == tag;
+            break;
         case 2:
+            index = (addr >> 6) & (l2_cache_lines-1); //cachelined - 1
+            tag = addr >> 14;
+            curr = l2_cache[index];
+            printf("L2 Curr Tag: %Lu\n", curr->tag );
+            // printf("L2 Tag: %Lx  Index: %x Valid: %d\n",tag, index, l2_cache[index]->tag == tag);
+            for (i = 0; i < l2_cache_assoc; i++) {
+                printf("L2 Tag: %Lx  Index: %x Valid: %d\n",tag, index, curr->tag == tag);
+                if (curr->tag == tag){
+                    return 1;
+                }
+                curr = curr->next;
+            }
+            return 0;
+            break;
         case 4:
         default: 
-            printf("Default values \n");
+            printf("Fully Associative Check L2\n");
     }
     return -1;
 }
@@ -683,6 +704,9 @@ int check_l2_cache(unsigned long long int addr){
 int is_dirty(unsigned long long int addr){
 
     int index;
+    unsigned long long int tag;
+    cache_entry * curr;
+    int i;
 
     switch(l2_cache_assoc){
         case 1:
@@ -690,7 +714,29 @@ int is_dirty(unsigned long long int addr){
             return l2_cache[index]->dirty;
             break;
         case 2:
+            index = (addr >> 6) & (l2_cache_lines-1); //cachelined - 1
+            tag = addr >> 14;
+            curr = l2_cache[index];
+            for (i = 0; i < l2_cache_assoc; i++){
+                if (curr->tag == tag){
+                    return curr->dirty;
+                }
+                curr = curr->next;
+            }
+            return 0;
+            break;
         case 4:
+            index = (addr >> 6) & (l1_cache_lines-1); //cachelined - 1
+            tag = addr >> 13;
+            curr = l2_cache[index];
+            for (i = 0; i < l2_cache_assoc; i++){
+                if (curr->tag == tag){
+                    return curr->dirty;
+                }
+                curr = curr->next;
+            }
+            return 0;
+            break;
         default: 
             printf("Default values \n");
     }
@@ -823,15 +869,22 @@ void print_stats() {
             printf("\n");
         }
     }
-    // printf("\n");
-    // printf("Memory Level:  L2\n");
-    // for (i = 0; i < l2_cache_lines; i++){
-    //     curr = l2_cache[i];
-    //     if (curr->tag != 0){
-    //             printf("Index:  %3x",i);
-    //             printf(" |  Tag:    %Lx \n", curr->tag);         
-    //     }
-    // }
+
+    printf("\n");
+    printf("Memory Level:  L2\n");
+    for (i = 0; i < l2_cache_lines; i++){
+        curr = l2_cache[i];
+        if (curr->tag != 0){
+            printf("Index:  %3x",i);
+            printf(" |  Tag:    %Lx ", curr->tag);
+            curr = curr->next;
+            while (curr != NULL) {
+                printf(" |  Tag:    %Lx ", curr->tag);
+                curr = curr->next;
+            }   
+            printf("\n");
+        }
+    }
 }
 
 /************************************************************/
