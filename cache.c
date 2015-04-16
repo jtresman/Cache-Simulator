@@ -17,6 +17,8 @@
 #include <math.h>
 #include "cache.h"
 
+ execution_time = 0;
+
 void init_cache() {
 
     int i,j;
@@ -84,6 +86,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
 
     int byteRefs = (byteSize/4) + (byteSize%4 ? 1 : 0); //Determine Number of Refs from bytes
 
+
     //Check to see if Unaligned or Not
 
     //Perform Access Based on Operation
@@ -98,9 +101,10 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                     insert_l2(addr,0);
                     insert_inst(addr);
                     //Copy from MM to L2 and L1
+                    
                 } else {
                     l2_hits ++;
-                    //Add Function to Adjust LRU L2
+                    adjust_LRU_l2(addr); //Add Function to Adjust LRU L2
                     insert_inst(addr);
                     l1_I_hits += byteRefs;
                     //Copy from L2
@@ -108,8 +112,9 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                 
             } else {
                 l1_I_hits += byteRefs;
-                //Add Function to Adjust LRU L1i
-                //Execution Time from L1
+                adjust_LRU_l1i(addr);       //Add Function to Adjust LRU L1i
+                execution_time += l1_hit_time;    //Execution Time from L1
+
             } 
             break;
         case 'W':
@@ -124,14 +129,14 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                     //Copy from MM to L1 and L2
                 } else {
                     write_data(addr);
-                    //Add Function to Adjust LRU L2
+                    adjust_LRU_l2(addr);  //Add Function to Adjust LRU L2
                     l2_hits ++;
                     l1_D_hits += byteRefs;
                     //Copy from L2
                 }
             } else {
                 //Add Function to just Mark Dirty
-                //Add Function to Adjust LRU L1d
+                adjust_LRU_l1d(addr); //Add Function to Adjust LRU L1d
                 l1_D_hits += byteRefs;
             } 
             break;
@@ -143,16 +148,17 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                     l2_misses++;
                     insert_l2(addr, 0);
                     read_data(addr, 0);
-                    //Execution Time from MM
+                    execution_time += MEM_SENDADDR + MEM_READY + (MEM_CHUNKTIME * (l2_cache_lines/MEM_CHUNKSIZE)) + l1_miss_time + l2_miss_time;  //Execution Time from MM
+                    
                 } else {
                     read_data(addr, is_dirty(addr));
                     l2_hits ++;
-                    //Execution Time from L2
+                    execution_time += l2_hit_time;
                 }
-                // 
+                 
                 l1_D_hits ++;
             } else {
-                //Execution Time from L1
+                execution_time += l1_hit_time;  //Execution Time from L1
                 l1_D_hits += byteRefs;
             } 
             break;
@@ -617,9 +623,9 @@ void print_stats() {
     }
 
     else i = 0;
-    l1_I_cost = 100*((l1_cache_size)/(4 * 1024)) + i*100*(l1_cache_assoc - (l1_cache_assoc/2)) ;
-    l1_D_cost = 
-    l2_cost = 
+
+    l1_I_cost = l1_D_cost = 100*((l1_cache_size)/(4 * 1024)) + i*100*(l1_cache_assoc - (l1_cache_assoc/2))*((l1_cache_size)/(4 * 1024));
+    l2_cost = 50*((l2_cache_size)/(64 * 1024)) + i*50*(l2_cache_assoc - (l1_cache_assoc/2)); 
 
     // default mem_ready cost is $50 and default mem_chunksize costs $25
     mem_cost = 75;
@@ -645,7 +651,7 @@ void print_stats() {
     printf("    Memory ready time = %d : chunksize = %d : chunktime = %d\n",MEM_READY,MEM_CHUNKSIZE,MEM_CHUNKTIME);
     printf("\n");
 
-    //printf("Execute time =          %Lx;  Total refs = %Lx\n",executionTime,totalReads + totalWrites);
+    //printf("Execute time =          %Lx;  Total refs = %Lx\n",execution_time,totalReads + totalWrites);
     //printf("Flush time =            %Lx\n",flush_time);
     //printf("Inst refs = %Lx;  Data refs = %Lx\n",inst_refs,data_refs);
     //printf("\n");
