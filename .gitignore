@@ -22,11 +22,10 @@
 
  #Folders #
  #
-  Traces/
-  readme
-  sample-output/
-  traces-1M/
-  traces-5M/
-  traces-long/
-
-  cache_sim
+Traces/
+readme
+sample-output/
+traces-1M/
+traces-5M/
+traces-long/
+cache_sim
