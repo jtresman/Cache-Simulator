@@ -14,7 +14,7 @@ unsigned long long int l1_ikickouts;
 unsigned long long int l1_ikickouts_dirty;
 unsigned long long int l1_itransfers;
 unsigned long long int l1_ikickouts_flush;
-unsigned long long int l1_ikickouts;
+unsigned long long int l1_dkickouts;
 unsigned long long int l1_dkickouts_dirty;
 unsigned long long int l1_dtransfers;
 unsigned long long int l1_dkickouts_flush;

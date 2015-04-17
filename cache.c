@@ -758,6 +758,28 @@ void print_stats() {
     int i;
     cache_entry *curr;
 
+    if(l1_cache_assoc != 1){
+      i = 1;
+    }
+
+    else i = 0;
+
+    l1_icost = l1_dcost = 100*((l1_cache_size)/(4 * 1024)) + i*100*(l1_cache_assoc - (l1_cache_assoc/2))*((l1_cache_size)/(4 * 1024));
+    l2_cost = 50*((l2_cache_size)/(64 * 1024)) + i*50*(l2_cache_assoc - (l1_cache_assoc/2)); 
+
+    // default mem_ready cost is $50 and default mem_chunksize costs $25
+    mem_cost = 75;
+
+    //print calculations
+// tot_ref_type = read_refs + write_refs + inst_ref_type;
+// tot_cycle = read_cycle + write_cycle + inst_cycle;
+// read_ref_perc = (read_refs/tot_ref_type);
+// write_ref_perc = (write_refs/tot_ref_type);
+// inst_ref_perc = (inst_ref_type/tot_ref_type);
+// read_cycle_perc = (read_cycle/tot_cycle);
+// write_cycle_perc = (write_cycle/tot_cycle);
+// inst_cycle_perc = (inst_cycle/tot_cycle);
+
     printf("SIMULATION RESULTS\n");
     printf("\n");
     printf("Memory system:\n");
@@ -784,35 +806,35 @@ void print_stats() {
     printf("    Inst.  =           %7Lu    \n",inst_cycle);
     printf("    Total  =           %7Lu\n",read_cycle+write_cycle+inst_cycle);
     printf("\n");
-    // printf("Average cycles per activity:\n");
-    // printf("    Read =  %3.1f; Write = %3.1f; Inst. = %3.1f\n",avg_cyc_read, avg_cyc_write,avg_cyc_inst);
-    // printf("Ideal: Exec. Time = %Lu; CPI =  %2.1f\n",avg_cyc_exec_time,avg_cyc_cpi);
-    // printf("Ideal mis-aligned: Exec. Time = %Lu; CPI =  %2.1f\n",avg_cyc_exec_misalign,avg_cyc_cpi_misalign);
-    // printf("\n");
+    printf("Average cycles per activity:\n");
+    printf("    Read =  %3.1f; Write = %3.1f; Inst. = %3.1f\n",avg_cyc_read, avg_cyc_write,avg_cyc_inst);
+    printf("Ideal: Exec. Time = %Lu; CPI =  %2.1f\n",avg_cyc_exec_time,avg_cyc_cpi);
+    printf("Ideal mis-aligned: Exec. Time = %Lu; CPI =  %2.1f\n",avg_cyc_exec_misalign,avg_cyc_cpi_misalign);
+    printf("\n");
     printf("Memory Level:  L1i\n");
     printf("    Hit Count = %Lu  Miss Count = %Lu\n",l1_ihits,l1_imisses);
     printf("    Total Requests = %Lu\n",l1_imisses+l1_ihits);
-    // printf("    Hit Rate = %3.1f%%   Miss Rate = %3.1f%%\n",l1IhitRate,l1ImissRate);
-    // printf("    Kickouts = %Lu; Dirty kickouts = %Lu; Transfers = %Lu\n",l1Ikickouts,l1Ikickouts_dirty,l1Itransfers);
-    // printf("    Flush Kickouts = %Lu\n", l1Ikickouts_flush);
+    printf("    Hit Rate = %3.1f%%   Miss Rate = %3.1f%%\n",l1_ihit_rate,l1_imiss_rate);
+    printf("    Kickouts = %Lu; Dirty kickouts = %Lu; Transfers = %Lu\n",l1_ikickouts,l1_ikickouts_dirty,l1_itransfers);
+    printf("    Flush Kickouts = %Lu\n", l1_ikickouts_flush);
     printf("\n");
     printf("Memory Level:  L1d\n");
     printf("    Hit Count = %Lu  Miss Count = %Lu\n",l1_dhits,l1_dmisses);
     printf("    Total Requests = %Lu\n",l1_dhits+l1_dmisses);
-    // printf("    Hit Rate = %3.1f%%   Miss Rate = %3.1f%%\n",l1DhitRate,l1ImissRate);
-    // printf("    Kickouts = %Lu; Dirty kickouts = %Lu; Transfers = %Lu\n",l1Ikickouts,l1Ikickouts_dirty,l1Itransfers);
-    // printf("    Flush Kickouts = %Lu\n",l1Dkickouts_flush);
+    printf("    Hit Rate = %3.1f%%   Miss Rate = %3.1f%%\n",l1_dhit_rate,l1_dmiss_rate);
+    printf("    Kickouts = %Lu; Dirty kickouts = %Lu; Transfers = %Lu\n",l1_dkickouts,l1_dkickouts_dirty,l1_dtransfers);
+    printf("    Flush Kickouts = %Lu\n",l1_dkickouts_flush);
     printf("\n");
     printf("Memory Level:  L2\n");
     printf("    Hit Count = %Lu  Miss Count = %Lu\n",l2_hits,l2_misses);
     printf("    Total Requests = %Lu\n",l2_hits+l2_misses);
-    // printf("    Hit Rate =  %3.1f%%   Miss Rate = %4.1f%%\n",l2hitRate,l2missRate);
-    // printf("    Kickouts = %Lu; Dirty kickouts = %Lu; Transfers = %Lu\n",l2kickouts,l2kickouts_dirty,l2transfers);
-    // printf("    Flush Kickouts = %Lu\n",l2kickouts_flush);
-    // printf("\n");
-    // printf("L1 cache cost (Icache $%Lu) + (Dcache $%Lu) = $%Lu\n",l1Icost,l1Dcost,l1Icost + l1Dcost);
-    // printf("L2 cache cost = $%Lu;  Memory cost = $%Lu  Total cost = $%Lu\n",l2cost,memcost,totcost);
-    // printf("Flushes = %Lu : Invalidates = %Lu\n",flushes,invalidates);
+    printf("    Hit Rate =  %3.1f%%   Miss Rate = %4.1f%%\n",l2_hit_rate,l2_miss_rate);
+    printf("    Kickouts = %Lu; Dirty kickouts = %Lu; Transfers = %Lu\n",l2_kickouts,l2_kickouts_dirty,l2_transfers);
+    printf("    Flush Kickouts = %Lu\n",l2_kickouts_flush);
+    printf("\n");
+    printf("L1 cache cost (Icache $%Lu) + (Dcache $%Lu) = $%Lu\n",l1_icost,l1_dcost,l1_icost + l1_dcost);
+    printf("L2 cache cost = $%Lu;  Memory cost = $%Lu  Total cost = $%Lu\n",l2_cost,mem_cost,l1_icost + l1_dcost+l2_cost+mem_cost);
+    printf("Flushes = %Lu : Invalidates = %Lu\n",flushes,invalidates);
 
     printf("-------------------------------------------------------------\n");
     printf("\n");
