@@ -328,78 +328,6 @@ void write_data(unsigned long long int addr) {
                 l1_dcache[index] = new;
             } 
             break;
-        // case 4:
-        //     index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 11;
-        //     if(l1_dcache[index]->tag == 0){
-        //         l1_dcache[index]->tag = tag;
-        //         l1_dcache[index]->address = addr;
-        //         l1_dcache[index]->dirty = 1;
-        //     } else {
-        //         curr = l1_dcache[index];
-        //         new = malloc(sizeof(cache_entry));
-        //         //Setup New Cache Entry
-        //         new->tag = tag;
-        //         new->address = addr;
-        //         new->next = curr;
-        //         new->dirty = 1;
-        //         curr->prev = new;
-
-        //         //Grab the Last Element
-        //         while (curr->next != NULL){
-        //             curr = curr->next;
-        //         }
-
-        //         if (curr->tag != 0 && curr->dirty){
-        //             //If the LRU is Dirty Write Back to L2
-        //             if (!check_l2_cache(curr->address)){
-        //                 execution_time += MEM_TO_L2 + L2_MISS_TIME + L2_HIT_TIME;
-        //             }
-        //             insert_l2(curr->address, curr->dirty);
-        //             execution_time += L2_TO_L1; 
-        //         } 
-
-        //         curr->prev->next = NULL;
-        //         free(curr);
-        //         l1_dcache[index] = new;
-        //     } 
-        //     break;
-        // case 8:
-        //     index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 11;
-        //     if(l1_dcache[index]->tag == 0){
-        //         l1_dcache[index]->tag = tag;
-        //         l1_dcache[index]->address = addr;
-        //         l1_dcache[index]->dirty = 1;
-        //     } else {
-        //         curr = l1_dcache[index];
-        //         new = malloc(sizeof(cache_entry));
-        //         //Setup New Cache Entry
-        //         new->tag = tag;
-        //         new->address = addr;
-        //         new->next = curr;
-        //         new->dirty = 1;
-        //         curr->prev = new;
-
-        //         //Grab the Last Element
-        //         while (curr->next != NULL){
-        //             curr = curr->next;
-        //         }
-
-        //         if (curr->tag != 0 && curr->dirty){
-        //             //If the LRU is Dirty Write Back to L2
-        //             if (!check_l2_cache(curr->address)){
-        //                 execution_time += MEM_TO_L2 + L2_MISS_TIME + L2_HIT_TIME;
-        //             }
-        //             insert_l2(curr->address, curr->dirty);
-        //             execution_time += L2_TO_L1; 
-        //         } 
-
-        //         curr->prev->next = NULL;
-        //         free(curr);
-        //         l1_dcache[index] = new;
-        //     } 
-        //     break;
         default:
             printf("Full Associative Write Data\n");
     }
@@ -473,76 +401,6 @@ void read_data(unsigned long long int addr, int dirty) {
                 l1_dcache[index] = new;
             }
             break;
-        // case 4:
-        //     index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 11;
-        //     if(l1_dcache[index]->tag == 0){
-        //         l1_dcache[index]->tag = tag;
-        //         l1_dcache[index]->address = addr;
-        //         l1_dcache[index]->dirty = 1;
-        //     } else {
-        //         curr = l1_dcache[index];
-        //         new = malloc(sizeof(cache_entry));
-        //         //Setup New Cache Entry
-        //         new->tag = tag;
-        //         new->address = addr;
-        //         new->next = curr;
-        //         curr->prev = new;
-
-        //         //Grab the Last Element
-        //         while (curr->next != NULL){
-        //             curr = curr->next;
-        //         }
-
-        //         if (curr->tag != 0 && curr->dirty){
-        //             //If the LRU is Dirty Write Back to L2
-        //             if (!check_l2_cache(curr->address)){
-        //                 execution_time += MEM_TO_L2 + L2_MISS_TIME + L2_HIT_TIME;
-        //             }
-        //             insert_l2(curr->address, curr->dirty);
-        //             execution_time += L2_TO_L1;
-        //         } 
-
-        //         curr->prev->next = NULL;
-        //         free(curr);
-        //         l1_dcache[index] = new;
-        //     }
-        //     break;
-        // case 8:
-        //     index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 10;
-        //     if(l1_dcache[index]->tag == 0){
-        //         l1_dcache[index]->tag = tag;
-        //         l1_dcache[index]->address = addr;
-        //         l1_dcache[index]->dirty = 1;
-        //     } else {
-        //         curr = l1_dcache[index];
-        //         new = malloc(sizeof(cache_entry));
-        //         //Setup New Cache Entry
-        //         new->tag = tag;
-        //         new->address = addr;
-        //         new->next = curr;
-        //         curr->prev = new;
-
-        //         //Grab the Last Element
-        //         while (curr->next != NULL){
-        //             curr = curr->next;
-        //         }
-
-        //         if (curr->tag != 0 && curr->dirty){
-        //             //If the LRU is Dirty Write Back to L2
-        //             if (!check_l2_cache(curr->address)){
-        //                 execution_time += MEM_TO_L2 + L2_MISS_TIME + L2_HIT_TIME;
-        //             }
-        //             insert_l2(curr->address, curr->dirty);
-        //             execution_time += L2_TO_L1; 
-        //         } 
-
-        //         curr->prev->next = NULL;
-        //         free(curr);
-        //         l1_dcache[index] = new;
-        //     }
-        //     break;
         default:
             printf("Full Associative Write Data\n");
     }
@@ -760,18 +618,6 @@ int is_dirty(unsigned long long int addr){
             }
             return 0;
             break;
-        // case 4:
-        //     index = (addr >> 6) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 13;
-        //     curr = l2_cache[index];
-        //     for (i = 0; i < l2_cache_assoc; i++){
-        //         if (curr->tag == tag){
-        //             return curr->dirty;
-        //         }
-        //         curr = curr->next;
-        //     }
-        //     return 0;
-        //     break;
         default: 
             printf("This shouldn't have happend! \n");
     }
@@ -817,36 +663,6 @@ void adjust_LRU_l1i(unsigned long long int addr){
                 l1_icache[index] = curr;
             } 
             break;
-        // case 4:
-        //     index = (addr >> L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> shift_amount_l1;
-        //     curr = l1_icache[index];
-        //     // printf("l1_I_cache Tag: %Lx\n", l1_I_cache[index]->tag );
-        //     // printf("I Tag: %Lx  Index: %x Valid: %d\n",tag, index, curr->tag == tag);
-        //     while (curr->tag != tag && curr->next != NULL) {
-        //         curr = curr->next;            
-        //     }
-
-        //     curr->prev->next = curr->next;
-        //     curr->next->prev = curr->prev;
-        //     curr->next = l1_icache[index];
-        //     curr->prev = NULL;
-        //     break;
-        // case 8:
-        //     index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 12;
-        //     curr = l1_icache[index];
-        //     // printf("l1_I_cache Tag: %Lx\n", l1_I_cache[index]->tag );
-        //     // printf("I Tag: %Lx  Index: %x Valid: %d\n",tag, index, curr->tag == tag);
-        //     while (curr->tag != tag && curr->next != NULL) {
-        //         curr = curr->next;            
-        //     }
-
-        //     curr->prev->next = curr->next;
-        //     curr->next->prev = curr->prev;
-        //     curr->next = l1_icache[index];
-        //     curr->prev = NULL;
-        //     break;
         default: 
             printf("Default values \n");
     }
@@ -890,52 +706,6 @@ void adjust_LRU_l1d(unsigned long long int addr){
                 l1_dcache[index] = curr;
             } 
             break;
-        // case 4:
-        //     index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 11;
-        //     curr = l1_dcache[index];
-        //     while (curr->tag != tag && curr->next != NULL){
-        //         curr = curr->next;
-        //     }
-
-        //     if (l1_dcache[index] != curr){
-
-        //         curr->prev->next = curr->next;
-
-        //         if (curr->next != NULL){
-        //             curr->next->prev = curr->prev;
-        //         }
-                    
-        //         curr->next = l1_dcache[index];
-
-        //         curr->next->prev = curr;
-        //         curr->prev = NULL;
-        //         l1_dcache[index] = curr;
-        //     }
-        //     break;
-        // case 8:
-        //     index = (addr >> 5) & (l1_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 12;
-        //     curr = l1_dcache[index];
-        //     while (curr->tag != tag && curr->next != NULL){
-        //         curr = curr->next;
-        //     }
-
-        //     if (l1_dcache[index] != curr){
-
-        //         curr->prev->next = curr->next;
-
-        //         if (curr->next != NULL){
-        //             curr->next->prev = curr->prev;
-        //         }
-                    
-        //         curr->next = l1_dcache[index];
-
-        //         curr->next->prev = curr;
-        //         curr->prev = NULL;
-        //         l1_dcache[index] = curr;
-        //     }
-        //     break;
         default: 
             printf("This shouldn't have happend!\n");
     }
@@ -978,54 +748,6 @@ void adjust_LRU_l2(unsigned long long int addr){
                 l2_cache[index] = curr;
             }
             break;
-        // case 4:
-        //     index = (addr >> 6) & (l2_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 13;
-        //     curr = l2_cache[index];
-
-        //      while (curr->tag != tag && curr->next != NULL){
-        //         curr = curr->next;
-        //     }
-
-        //     if (l2_cache[index] != curr){
-
-        //         curr->prev->next = curr->next;
-
-        //         if (curr->next != NULL){
-        //             curr->next->prev = curr->prev;
-        //         }
-                    
-        //         curr->next = l2_cache[index];
-
-        //         curr->next->prev = curr;
-        //         curr->prev = NULL;
-        //         l2_cache[index] = curr;
-        //     }
-        //     break;
-        // case 8:
-        //     index = (addr >> 6) & (l2_cache_lines-1); //cachelined - 1
-        //     tag = addr >> 12;
-        //     curr = l2_cache[index];
-
-        //      while (curr->tag != tag && curr->next != NULL){
-        //         curr = curr->next;
-        //     }
-
-        //     if (l2_cache[index] != curr){
-
-        //         curr->prev->next = curr->next;
-
-        //         if (curr->next != NULL){
-        //             curr->next->prev = curr->prev;
-        //         }
-                    
-        //         curr->next = l2_cache[index];
-
-        //         curr->next->prev = curr;
-        //         curr->prev = NULL;
-        //         l2_cache[index] = curr;
-        //     }
-        //     break;
         default: 
             printf("This shouldn't have happened.\n");
     }
