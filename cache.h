@@ -10,41 +10,21 @@
  */
 
  //Simulation Globals
-unsigned long long int executionTime;
-unsigned long long int flushTime;
-unsigned long long int instRefs;
-unsigned long long int dataRefs;
-unsigned long long int totalReads;
-unsigned long long int totalWrites;
-unsigned long long int l1ItotalReq;
-unsigned long long int l1DtotalReq;
-unsigned long long int l2totalReq;
-
-float l1IhitRate;
-float l1ImissRate;
-float l1DhitRate;
-float l1DmissRate;
-float l2hitRate;
-float l2missRate;
-
-unsigned long long int l1Ikickouts;
-unsigned long long int l1Ikickouts_dirty;
-unsigned long long int l1Itransfers;
-unsigned long long int l1Ikickouts_flush;
-unsigned long long int l1Dkickouts;
-unsigned long long int l1Dkickouts_dirty;
-unsigned long long int l1Dtransfers;
-unsigned long long int l1Dkickouts_flush;
-unsigned long long int l2kickouts;
-unsigned long long int l2kickouts_dirty;
-unsigned long long int l2transfers;
-unsigned long long int l2kickouts_flush;
-unsigned long int l1IMisses;
-unsigned long long int l1IHits;
-unsigned long int l1DMisses;
-unsigned long long int l1DHits;
-unsigned long long int l2Hits;
-unsigned long long int l2Misses;
+unsigned long long int l1_ikickouts;
+unsigned long long int l1_ikickouts_dirty;
+unsigned long long int l1_itransfers;
+unsigned long long int l1_ikickouts_flush;
+unsigned long long int l1_ikickouts;
+unsigned long long int l1_dkickouts_dirty;
+unsigned long long int l1_dtransfers;
+unsigned long long int l1_dkickouts_flush;
+unsigned long long int l1_dtotal_req;
+unsigned long long int l1_itotal_req;
+unsigned long long int l2_total_req;
+unsigned long long int l2_kickouts;
+unsigned long long int l2_kickouts_dirty;
+unsigned long long int l2_transfers;
+unsigned long long int l2_kickouts_flush;
 
 float read_ref_perc;
 float write_ref_perc;
@@ -54,16 +34,17 @@ float write_cycle_perc;
 float inst_cycle_perc;
 float avg_cyc_write;
 float avg_cyc_inst;
+float avg_cyc_read;
 
 unsigned long long int avg_cyc_exec_time;
 float avg_cyc_cpi;
 unsigned long long int avg_cyc_exec_misalign;
 float avg_cyc_cpi_misalign;
-unsigned long long int l1Icost;
-unsigned long long int l1Dcost;
-unsigned long long int l2cost;
-unsigned long long int memcost;
-unsigned long long int totcost;
+unsigned long long int l1_icost;
+unsigned long long int l1_dcost;
+unsigned long long int l2_cost;
+unsigned long long int mem_cost;
+unsigned long long int tot_cost;
 unsigned long long int flushes;
 unsigned long long int invalidates;
 
@@ -77,6 +58,7 @@ unsigned long long int invalidates;
 #define L1_DEFAULT_CACHE_ASSOC 1
 #define L1_HIT_TIME 1
 #define L1_MISS_TIME 1
+#define L1_OFFSET 5
 
 //Default L2 Cache Parameters
 #define L2_DEFAULT_CACHE_SIZE 32768
@@ -86,6 +68,9 @@ unsigned long long int invalidates;
 #define L2_MISS_TIME 7
 #define L2_TRANSFER_TIME 5
 #define L2_BUS_WIDTH 16
+#define MEM_TO_L2 160
+#define L2_TO_L1 10
+#define L2_OFFSET 6
 
 //Default Main Memory Access Times
 #define MEM_SENDADDR 10
@@ -98,8 +83,6 @@ int l1_cache_size;
 int l2_cache_size; 
 int l1_cache_block_size;
 int l2_cache_block_size;
-// int l1_words_per_block = L1_DEFAULT_CACHE_BLOCK_SIZE / WORD_SIZE;
-// int l2_words_per_block = L2_DEFAULT_CACHE_BLOCK_SIZE / WORD_SIZE;
 int l1_cache_assoc;
 int l2_cache_assoc;
 
@@ -120,8 +103,17 @@ unsigned long long int l2_hits;
 unsigned long long int l2_misses;
 unsigned long long int total_inst;
 
+float l1_ihit_rate;
+float l1_imiss_rate;
+float l1_dhit_rate;
+float l1_dmiss_rate;
+float l2_hit_rate;
+float l2_miss_rate;
+
 int l1_cache_lines;
 int l2_cache_lines;
+int shift_amount_l1;
+int shift_amount_l2;
 
 //Cache Entry Structure
 typedef struct cache_entry {
