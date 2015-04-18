@@ -1,9 +1,9 @@
 #!/bin/bash
 
-FILES="traces-short/tr1"
+FILES="traces-short/*"
 CONFIG="config-files/*"
 RESULTS=results
-mkdir "results";
+mkdir "results"
 
 for f in $FILES
 do
