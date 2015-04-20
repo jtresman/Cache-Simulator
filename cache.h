@@ -104,6 +104,8 @@ unsigned long long int l1_dhits;
 unsigned long long int l2_hits;
 unsigned long long int l2_misses;
 unsigned long long int total_inst;
+unsigned long int flush_counter;
+
 
 float l1_ihit_rate;
 float l1_imiss_rate;
@@ -142,8 +144,10 @@ void insert_l2(unsigned long long int addr, int dirty);
 int  check_inst_cache(unsigned long long int addr);
 int  check_data_cache(unsigned long long int addr);
 int  check_l2_cache(unsigned long long int addr);
-int  is_dirty(unsigned long long int addr);
-void  mark_dirty(unsigned long long int addr);
+unsigned long long int  is_dirty_l2(unsigned long long int addr);
+unsigned long long int  is_dirty_l1(unsigned long long int addr);
+void mark_dirty_l1(unsigned long long int addr);
+void mark_dirty_l2(unsigned long long int addr);
 void adjust_LRU_l1i(unsigned long long int addr);
 void adjust_LRU_l1d(unsigned long long int addr);
 void adjust_LRU_l2(unsigned long long int addr);

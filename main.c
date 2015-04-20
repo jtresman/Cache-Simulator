@@ -54,10 +54,7 @@ int main(int argc, char **argv){
     l1_cache_block_size = L1_DEFAULT_CACHE_BLOCK_SIZE;
     l2_cache_block_size = L2_DEFAULT_CACHE_BLOCK_SIZE;
 
-    printf("Init Cache\n");
     init_cache();
-
-    printf("Read Taces\n");
 
     while(scanf("%c %Lx %d\n",&op,&address,&bytesize) == 3){
 
