@@ -93,7 +93,8 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
 
     unsigned long long int endAddress = addr + (byteSize-1);
     unsigned long long int waStartAddress = (addr & 0xFFFFFFFFFFFC); //word aligned address
-    unsigned long long int dirtyAddress;
+    unsigned long long int dirtyAddressl1;
+    unsigned long long int dirtyAddressl2;
 
     // printf("WA Start Address: %Lx\n", waStartAddress);
     // printf("End Address: %Lx\n", endAddress); 
@@ -133,17 +134,18 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                     l1_imisses++;
                     execution_time += L1_MISS_TIME;
                     inst_cycle += L1_MISS_TIME;
-                    l1_itransfers ++;
                     if (!check_l2_cache(waStartAddress)){
                         //Copy from MM to L2 and L1
                         l2_misses++;
                         l2_transfers++;
+                        l1_itransfers ++;
                         execution_time += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
                         inst_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
 
-                        if (is_dirty_l2(waStartAddress)){
+                        if (is_dirtykickout_l2(waStartAddress)){
                             execution_time += MEM_TO_L2;
-                            inst_cycle += MEM_TO_L2;      
+                            inst_cycle += MEM_TO_L2;
+                            l2_transfers++;      
                         }
 
                         insert_l2(waStartAddress,0);
@@ -151,6 +153,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                     } else {
                         //Copy from L2 to L1
                         l2_hits ++;
+                        l1_itransfers ++;
                         adjust_LRU_l2(waStartAddress);
                         insert_inst(waStartAddress);
                         execution_time += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
@@ -172,74 +175,56 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                     execution_time += L1_MISS_TIME;
                     write_cycle += L1_MISS_TIME;
                     l1_dtransfers++;
-    
-                    //Check if a Dirty Write Back Required for L1
-                    dirtyAddress = is_dirty_l1(waStartAddress);
 
-                    if (dirtyAddress){
-                        //Current Entry is Dirty
-                         if (check_l2_cache(dirtyAddress)){
+
+                    dirtyAddressl1 = is_dirtykickout_l1(waStartAddress);
+                    dirtyAddressl2 = is_dirtykickout_l2(dirtyAddressl1);
+
+                    //See if dirty kickouts occur
+                    if (dirtyAddressl1){
+                        
+                        if (check_l2_cache(dirtyAddressl1)){
                             l2_hits++;
-                            execution_time += L2_HIT_TIME + L2_TO_L1;
-                            write_cycle += L2_HIT_TIME + L2_TO_L1;
-                            //Simulate Transfer to L2
-                            mark_dirty_l2(dirtyAddress);
-                            adjust_LRU_l2(dirtyAddress);
-                        } else if (is_dirty_l2(dirtyAddress)) {
-                            l2_misses++;
-                            insert_l2(dirtyAddress, 1);
-                            execution_time += MEM_TO_L2 + L2_TO_L1 + L2_HIT_TIME;
-                            write_cycle += MEM_TO_L2 + L2_TO_L1 + L2_HIT_TIME;
-                        } else {
-                            l2_misses++;
-                            insert_l2(dirtyAddress, 1);
+                            mark_dirty_l2(dirtyAddressl1);
                             execution_time += L2_TO_L1 + L2_HIT_TIME;
                             write_cycle += L2_TO_L1 + L2_HIT_TIME;
-                        }
-
-                        if (!check_l2_cache(waStartAddress)){
-                            l2_misses++;
-                            l2_transfers++;
-                            // printf("L2 MISS\n");
-                            execution_time += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            write_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            write_data(waStartAddress);
-                            insert_l2(waStartAddress, 0);
-                            //Execution Time from MM
                         } else {
-                            //Address In L2 Just Copy from L2
-                            l2_hits ++;
-                            execution_time += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            write_cycle += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            write_data(waStartAddress);
-                            adjust_LRU_l2(waStartAddress);
-                        }
-
-                    } else {
-                        
-                        if (is_dirty_l2(waStartAddress)){
-                            execution_time += MEM_TO_L2;
-                            read_cycle += MEM_TO_L2;
-                        }
-
-                        //Current Entry Not Dirty
-                        if (!check_l2_cache(waStartAddress)){
-                            //Execution Time from MM
+                            //Ask ARP what to do here
+                            if (dirtyAddressl2){
+                                execution_time += MEM_TO_L2;
+                                write_cycle += MEM_TO_L2;
+                            }
                             l2_misses++;
-                            l2_transfers++;
-                            execution_time += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            write_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            insert_l2(waStartAddress, 0);
-                            write_data(waStartAddress);
-                        } else {
-                            //Copy from L2 and Mark Dirty
-                            l2_hits ++;
-                            execution_time += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            write_cycle += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            write_data(waStartAddress);
-                            adjust_LRU_l2(waStartAddress);
+                            insert_l2(dirtyAddressl1, 1);
+                            // execution_time += L2_TO_L1 + L2_HIT_TIME;
+                            // write_cycle += L2_TO_L1 + L2_HIT_TIME;
                         }
                     }
+
+                    //  dirtyAddressl2 = is_dirtykickout_l2(waStartAddress);
+
+                    // if (dirtyAddressl2){
+                    //     execution_time += MEM_TO_L2;
+                    //     write_cycle += MEM_TO_L2;
+                    // }
+
+                    if (!check_l2_cache(waStartAddress)){
+                        //Execution Time from MM
+                        l2_misses++;
+                        l2_transfers++;
+                        execution_time += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
+                        write_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
+                        insert_l2(waStartAddress, 0);
+                        write_data(waStartAddress);
+                    } else {
+                        //Copy from L2 and Mark Dirty
+                        l2_hits ++;
+                        execution_time += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
+                        write_cycle += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
+                        write_data(waStartAddress);
+                        adjust_LRU_l2(waStartAddress);
+                    }
+
                 } else {
                     //In Cache Just Mark Dirty
                     adjust_LRU_l1d(waStartAddress);
@@ -257,79 +242,58 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                     read_cycle += L1_MISS_TIME;
                     l1_dtransfers++;
                     // printf("L1 D MISS\n");
-                    
-                    //Check if a Dirty Write Back Required
-                    dirtyAddress = is_dirty_l1(waStartAddress);
 
-                    // printf("Dirty Address: %Lx\n", dirtyAddress );
-                    
-                    if (dirtyAddress){
+                    dirtyAddressl1 = is_dirtykickout_l1(waStartAddress);
+                    dirtyAddressl2 = is_dirtykickout_l2(dirtyAddressl1);
+
+                    //See if dirty kickouts occur
+                    if (dirtyAddressl1){
                         
-                        if (check_l2_cache(dirtyAddress)){
+                        if (check_l2_cache(dirtyAddressl1)){
                             l2_hits++;
-                            execution_time += L2_HIT_TIME + L2_TO_L1;
-                            read_cycle += L2_HIT_TIME + L2_TO_L1;
-                            //Simulate Transfer to L2
-                            mark_dirty_l2(dirtyAddress);
-                            // l1_dkickouts++;
-                        } else if (is_dirty_l2(dirtyAddress)) {
-                            l2_misses++;
-                            insert_l2(dirtyAddress, 1);
-                            execution_time += MEM_TO_L2 + L2_TO_L1 + L2_HIT_TIME;
-                            write_cycle += MEM_TO_L2 + L2_TO_L1 + L2_HIT_TIME;
-                        } else {
-                            l2_misses++;
-                            insert_l2(dirtyAddress, 1);
+                            mark_dirty_l2(dirtyAddressl1);
                             execution_time += L2_TO_L1 + L2_HIT_TIME;
-                            write_cycle += L2_TO_L1 + L2_HIT_TIME;
-                        }
-
-                        if (!check_l2_cache(waStartAddress)){
-                            l2_misses++;
-                            l2_transfers++;
-                            // printf("L2 MISS\n");
-                            execution_time += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            read_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            read_data(waStartAddress, 0);
-                            insert_l2(waStartAddress, 0);
-                            //Execution Time from MM
+                            read_cycle += L2_TO_L1 + L2_HIT_TIME;
                         } else {
-                            l2_hits ++;
-                            // printf("L2 HIT\n");
-                            execution_time += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            read_cycle += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            read_data(waStartAddress, 0);
-                            adjust_LRU_l2(waStartAddress);
-                            //Execution Time from L2
-                        }
-
-                    } else {
-
-                        if (is_dirty_l2(waStartAddress)){
-                            execution_time += MEM_TO_L2;
-                            read_cycle += MEM_TO_L2;
-                        }
-                        
-                        if (!check_l2_cache(waStartAddress)){
-                            l2_misses++;
-                            l2_transfers++;
-                            // printf("L2 MISS\n");
-                            execution_time += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            read_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            insert_l2(waStartAddress, 0);
-                            read_data(waStartAddress, 0);
-                            //Execution Time from MM
-                        } else {
-                            l2_hits ++;
-                            // printf("L2 HIT\n");
-                            execution_time += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            read_cycle += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                            read_data(waStartAddress, 0);
-                            adjust_LRU_l2(waStartAddress);
-                            //Execution Time from L2
+                            //Ask ARP what to do here
+                            if (dirtyAddressl2){
+                                execution_time += MEM_TO_L2;
+                                read_cycle += MEM_TO_L2;
+                            }
+                            // l2_misses++;
+                            insert_l2(dirtyAddressl1, 1);
+                            // execution_time += L2_TO_L1 + L2_HIT_TIME;
+                            // read_cycle += L2_TO_L1 + L2_HIT_TIME;
                         }
                     }
 
+                    // dirtyAddressl2 = is_dirtykickout_l2(waStartAddress);
+
+                    // if (dirtyAddressl2){
+                    //     execution_time += MEM_TO_L2;
+                    //     read_cycle += MEM_TO_L2;
+                    // }
+
+                    //Insert New Address   
+                    if (!check_l2_cache(waStartAddress)){
+                        l2_misses++;
+                        l2_transfers++;
+                        // printf("L2 MISS\n");
+                        execution_time += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
+                        read_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
+                        insert_l2(waStartAddress, 0);
+                        read_data(waStartAddress, 0);
+                        //Execution Time from MM
+                    } else {
+                        l2_hits ++;
+                        // printf("L2 HIT\n");
+                        execution_time += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
+                        read_cycle += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
+                        read_data(waStartAddress, is_dirty_l2(waStartAddress));
+                        adjust_LRU_l2(waStartAddress);
+                        //Execution Time from L2
+                    }
+                    
                 } else {
                     //Execution Time from L1
                     // printf("L1 D HIT\n");
@@ -406,12 +370,13 @@ void insert_inst(unsigned long long int addr) {
         case 1:
             index = (addr>>L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
             tag = addr >> shift_amount_l1;
-            if (l1_icache[index]->valid){
+            if (l1_icache[index]->valid == 1){
                 l1_ikickouts++;
             }
             l1_icache[index]->tag = tag;
             l1_icache[index]->address = addr;
             l1_icache[index]->valid = 1;
+            l1_icache[index]->dirty = 0;
             break;
         case 2:
         case 4:
@@ -432,6 +397,10 @@ void insert_inst(unsigned long long int addr) {
             //Grab the Last Element
             while (curr->next != NULL){
                 curr = curr->next;
+            }
+
+            if (curr->valid){
+                l1_ikickouts++;
             }
 
             curr->prev->next = NULL;
@@ -456,27 +425,22 @@ void write_data(unsigned long long int addr) {
         case 1:
             index = (addr >> L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
             tag = addr >> shift_amount_l1;
-            if(l1_dcache[index]->valid == 0){
-                l1_dcache[index]->tag = tag;
-                l1_dcache[index]->address = addr;
-                l1_dcache[index]->dirty = 1;
-                l1_dcache[index]->valid = 1;
-            } else {
-                //Insert Into L2 W is Dirty
-                // printf("Found a Valid Entry! Dirty: %d Address: %Lx\n", l1_dcache[index]->dirty, l1_dcache[index]->address  );
-                if (l1_dcache[index]->dirty && l1_dcache[index]->valid){
-                    // insert_l2(l1_dcache[index]->address, l1_dcache[index]->dirty);
-                    // printf("L1 Dirty Kickout: %Lx \n", l1_dcache[index]->address );
-                    l1_dkickouts_dirty++;
-                } else if (l1_dcache[index]->valid){
-                    // printf("L1 Kickout: %Lx \n", l1_dcache[index]->tag );
-                    l1_dkickouts++;
-                }
-                l1_dcache[index]->tag = tag;
-                l1_dcache[index]->dirty = 1;
-                l1_dcache[index]->valid = 1;
-                l1_dcache[index]->address = addr;
-            } 
+
+            //Insert Into L2 W is Dirty
+            // printf("Found a Valid Entry! Dirty: %d Address: %Lx\n", l1_dcache[index]->dirty, l1_dcache[index]->address  );
+            if (l1_dcache[index]->dirty && l1_dcache[index]->valid){
+                // insert_l2(l1_dcache[index]->address, l1_dcache[index]->dirty);
+                // printf("L1 Dirty Kickout: %Lx \n", l1_dcache[index]->address );
+                l1_dkickouts_dirty++;
+                l1_dkickouts++;
+            } else if (l1_dcache[index]->valid){
+                // printf("L1 Kickout: %Lx \n", l1_dcache[index]->tag );
+                l1_dkickouts++;
+            }
+            l1_dcache[index]->tag = tag;
+            l1_dcache[index]->dirty = 1;
+            l1_dcache[index]->valid = 1;
+            l1_dcache[index]->address = addr;
             break;
         case 2:
         case 4:
@@ -508,6 +472,7 @@ void write_data(unsigned long long int addr) {
 
                 if (curr->valid != 0 && curr->dirty){
                     l1_dkickouts_dirty++;
+                    l1_dkickouts++;
                     // insert_l2(curr->address, curr->dirty);
                 } else if (curr->valid){
                     l1_dkickouts++;
@@ -534,29 +499,22 @@ void read_data(unsigned long long int addr, int dirty) {
         case 1:
             index = (addr >> L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
             tag = addr >> shift_amount_l1; //log2 l1_cache_lines -1 + offset
-            if(l1_dcache[index]->valid == 0){
-                l1_dcache[index]->tag = tag;
-                l1_dcache[index]->address = addr; 
-                l1_dcache[index]->dirty = 0;
-                l1_dcache[index]->valid = 1;
-            } else {
-                //Write back to L2 if dirty
-                // printf("Found a Valid Entry! Dirty: %d Address: %Lx\n", l1_dcache[index]->dirty, l1_dcache[index]->address  );
-                if (l1_dcache[index]->dirty && l1_dcache[index]->valid){
-                    l1_dkickouts_dirty++;
-                    // printf("L1 Dirty Kickout: %Lx \n", l1_dcache[index]->address );
-                    // insert_l2(l1_dcache[index]->address,l1_dcache[index]->dirty);
-                } else if (l1_dcache[index]->valid){
-                    l1_dkickouts++;
-                    // printf("L1 Kickout: %Lx \n", l1_dcache[index]->address );
-                }
-
-                // printf("Insert Into L2 R\n");
-                l1_dcache[index]->tag = tag;
-                l1_dcache[index]->address = addr;
-                l1_dcache[index]->dirty = dirty;
-                l1_dcache[index]->valid = 1;
-            } 
+            //Write back to L2 if dirty
+            // printf("Found a Valid Entry! Dirty: %d Address: %Lx\n", l1_dcache[index]->dirty, l1_dcache[index]->address  );
+            if (l1_dcache[index]->dirty && l1_dcache[index]->valid){
+                l1_dkickouts_dirty++;
+                l1_dkickouts++;
+                // printf("L1 Dirty Kickout: %Lx \n", l1_dcache[index]->address );
+                // insert_l2(l1_dcache[index]->address,l1_dcache[index]->dirty);
+            } else if (l1_dcache[index]->valid){
+                l1_dkickouts++;
+                // printf("L1 Kickout: %Lx \n", l1_dcache[index]->address );
+            }
+            // printf("Insert Into L2 R\n");
+            l1_dcache[index]->tag = tag;
+            l1_dcache[index]->address = addr;
+            l1_dcache[index]->dirty = dirty;
+            l1_dcache[index]->valid = 1;
             break;
         case 2:
         case 4:
@@ -588,6 +546,7 @@ void read_data(unsigned long long int addr, int dirty) {
                 if (curr->valid && curr->dirty){
                     //If the LRU is Dirty Write Back to L2
                     l1_dkickouts_dirty++;
+                    l1_dkickouts++;
                     // insert_l2(curr->address, curr->dirty);
                 } else if (curr->valid){
                     l1_dkickouts++;
@@ -615,25 +574,20 @@ void insert_l2(unsigned long long int addr, int dirty) {
         case 1:
             index = (addr >> L2_OFFSET) & (l2_cache_lines-1); //cachelined - 1
             tag = addr >> shift_amount_l2;
-            if(l2_cache[index]->valid == 0){
-                l2_cache[index]->tag = tag;
-                l2_cache[index]->dirty = dirty;
-                l2_cache[index]->address = addr;
-                l2_cache[index]->valid = 1;
 
-            } else {
-                if (l2_cache[index]->dirty && l2_cache[index]->valid){
-                    // printf("Found Dirty Address L2: %Lx\n", l2_cache[index]->address);
-                    l2_kickouts_dirty++;
-                } else if (l2_cache[index]->valid) {
-                    // printf("Found Address to Kickout L2: %Lx\n", l2_cache[index]->address);
-                    l2_kickouts++;
-                }
-                l2_cache[index]->tag = tag;
-                l2_cache[index]->dirty = dirty;
-                l2_cache[index]->address = addr;
-                l2_cache[index]->valid = 1;
-            } 
+            if (l2_cache[index]->dirty && l2_cache[index]->valid){
+                // printf("Found Dirty Address L2: %Lx\n", l2_cache[index]->address);
+                l2_kickouts_dirty++;
+                l2_kickouts++;
+            } else if (l2_cache[index]->valid) {
+                // printf("Found Address to Kickout L2: %Lx\n", l2_cache[index]->address);
+                l2_kickouts++;
+            }
+
+            l2_cache[index]->tag = tag;
+            l2_cache[index]->dirty = dirty;
+            l2_cache[index]->address = addr;
+            l2_cache[index]->valid = 1;
             break;
         case 2:
         case 4:
@@ -665,6 +619,7 @@ void insert_l2(unsigned long long int addr, int dirty) {
 
                     if (curr->dirty && curr->valid){
                         l2_kickouts_dirty++;
+                        l2_kickouts++;
                     } else if (curr->valid){
                         l2_kickouts++;
                     }
@@ -783,7 +738,7 @@ int check_l2_cache(unsigned long long int addr){
     return -1;
 }
 
-unsigned long long int is_dirty_l2(unsigned long long int addr){
+unsigned long long int is_dirtykickout_l2(unsigned long long int addr){
 
     int index;
     cache_entry * curr;
@@ -814,7 +769,46 @@ unsigned long long int is_dirty_l2(unsigned long long int addr){
     return -1;
 }   
 
-unsigned long long int is_dirty_l1(unsigned long long int addr){
+int is_dirty_l2(unsigned long long int addr){
+
+    int index;
+    unsigned long long int tag;
+    cache_entry * curr;
+    int i;
+
+    switch(l2_cache_assoc){
+        case 1:
+            index = (addr >> L2_OFFSET) & (l2_cache_lines-1); //cachelined - 1
+            // printf("Is Dirty L2? %Lx\n", l2_cache[index]->dirty ? l2_cache[index]->address: 0);
+            if (l2_cache[index]->dirty){
+                return 1;
+            }
+            return 0;
+            break;
+        case 2:
+        case 4:
+        case 8:
+        case 256:
+            index = (addr >> L2_OFFSET) & (l2_cache_lines-1); //cachelined - 1
+            tag = addr >> shift_amount_l2;
+            curr = l2_cache[index];
+            for (i = 0; i < l2_cache_assoc; i++){
+                if (curr->tag == tag && curr->valid && curr->dirty){
+                    return 1;
+                }
+                if (curr->next != NULL){
+                    curr = curr->next;
+                }
+            }
+            return 0;
+            break;
+        default: 
+            printf("This shouldn't have happend! \n");
+    }
+    return -1;
+}
+
+unsigned long long int is_dirtykickout_l1(unsigned long long int addr){
 
     int index;
     cache_entry * curr;
@@ -845,6 +839,45 @@ unsigned long long int is_dirty_l1(unsigned long long int addr){
     return -1;
 }
 
+int is_dirty_l1(unsigned long long int addr){
+
+    int index;
+    unsigned long long int tag;
+    cache_entry * curr;
+    int i;
+
+    switch(l1_cache_assoc){
+        case 1:
+            index = (addr >> L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
+            // printf("Is Dirty L1? %Lx\n", l1_cache[index]->dirty ? l2_cache[index]->address: 0);
+            if (l1_dcache[index]->dirty){
+                return 1;
+            }
+            return 0;
+            break;
+        case 2:
+        case 4:
+        case 8:
+        case 256:
+            index = (addr >> L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
+            tag = addr >> shift_amount_l1;
+            curr = l1_dcache[index];
+            for (i = 0; i < l1_cache_assoc; i++){
+                if (curr->tag == tag && curr->valid){
+                    return 1;
+                }
+                if (curr->next != NULL){
+                    curr = curr->next;
+                }
+            }
+            return 0;
+            break;
+        default: 
+            printf("This shouldn't have happend! \n");
+    }
+    return -1;
+}
+
 void mark_dirty_l1(unsigned long long int addr){
 
     int index;
@@ -858,6 +891,8 @@ void mark_dirty_l1(unsigned long long int addr){
             tag = addr >> shift_amount_l1;
             if (l1_dcache[index]->valid && l1_dcache[index]->tag == tag){
                 l1_dcache[index]->dirty = 1;
+            } else {
+                printf("This shouldn't have happen.\n");
             }
         case 2:
         case 4:
@@ -871,9 +906,11 @@ void mark_dirty_l1(unsigned long long int addr){
             for (i = 0; i < l1_cache_assoc; i++){
                 if (curr->tag == tag && curr->valid){
                     curr->dirty = 1;
+                    return;
                 }
                 curr = curr->next;
             }
+            printf("This should't have happened.\n");
             break;
         default: 
             printf("This shouldn't have happend.\n");
@@ -891,7 +928,7 @@ void mark_dirty_l2(unsigned long long int addr){
         case 1:
             index = (addr >> L2_OFFSET) & (l2_cache_lines-1); //5 = offset bits
             tag = addr >> shift_amount_l2;
-            if (l2_cache[index]->valid){
+            if (l2_cache[index]->valid && l2_cache[index]->tag == tag){
                  l2_cache[index]->dirty = 1;
              } 
         case 2:
@@ -1145,6 +1182,9 @@ void print_stats() {
     avg_cyc_write =  (float)write_cycle/(float)write_refs;
     avg_cyc_inst = (float)tot_cycle/(float)inst_refs;
 
+    avg_cyc_exec_time = 2*inst_refs + read_refs + write_refs;
+    avg_cyc_cpi = (float)avg_cyc_exec_time/inst_refs;
+
     printf("SIMULATION RESULTS\n");
     printf("\n");
     printf("Memory system:\n");
@@ -1212,13 +1252,13 @@ void print_stats() {
         curr = l1_icache[i];
         if (curr->valid != 0){
             printf("Index:  %3x",i);
-            printf(" | V: %d D: %d Tag: %9Lx ", curr->valid, curr->dirty, curr->tag);
+            printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
             curr = curr->next;
             while (curr != NULL) {
                 if (!curr->valid){
-                    printf(" | V: 0 D: 0 Tag: - ");
+                    printf(" | V:0 D:0 Tag: - ");
                 } else {
-                    printf(" | V: %d D: %d Tag: %9Lx ", curr->valid, curr->dirty, curr->tag);
+                    printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
                 }
                 curr = curr->next;
             }   
@@ -1232,13 +1272,13 @@ void print_stats() {
         curr = l1_dcache[i];
         if (curr->valid != 0){
             printf("Index:  %3x",i);
-            printf(" | V: %d D: %d Tag: %9Lx ", curr->valid, curr->dirty, curr->tag);
+            printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
             curr = curr->next;
             while (curr != NULL) {
                 if (!curr->valid){
-                    printf(" | V: 0 D: 0 Tag: - ");
+                    printf(" | V:0 D:0 Tag:- ");
                 } else {
-                    printf(" | V: %d D: %d Tag: %9Lx ", curr->valid, curr->dirty, curr->tag);
+                    printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
                 }
                 curr = curr->next;
             }   
@@ -1252,13 +1292,13 @@ void print_stats() {
         curr = l2_cache[i];
         if (curr->valid != 0){
             printf("Index:  %3x",i);
-            printf(" | V: %d D: %d Tag: %9Lx ", curr->valid, curr->dirty, curr->tag);
+            printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
             curr = curr->next;
             while (curr != NULL) {
                 if (!curr->valid){
-                    printf(" | V: 0 D: 0 Tag:   -  ");
+                    printf(" | V:0 D:0 Tag: - ");
                 } else {
-                    printf(" | V: %d D: %d Tag: %9Lx ", curr->valid, curr->dirty, curr->tag);
+                    printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
                 }
                 curr = curr->next;
             }   
