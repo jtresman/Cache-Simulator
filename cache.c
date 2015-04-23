@@ -21,6 +21,7 @@
 void init_cache() {
 
     int i,j;
+    flush_active = 0;
     l1_cache_lines = l1_cache_size/l1_cache_block_size/l1_cache_assoc;
     l2_cache_lines = l2_cache_size/l2_cache_block_size/l2_cache_assoc;
 
@@ -44,12 +45,14 @@ void init_cache() {
         blank_entry->tag = 0;
         blank_entry->prev = NULL;
         blank_entry->valid = 0;
+        blank_entry->dirty = 0;
         l1_icache[i] = blank_entry;
         curr = l1_icache[i];
         for (j = 0; j < l1_cache_assoc-1; j++) {
             blank_entry = (cache_entry *)malloc(sizeof(cache_entry));
             blank_entry->tag = 0;
             blank_entry->valid = 0;
+            blank_entry->dirty = 0;
             blank_entry->next = NULL;
             curr->next = blank_entry;
             blank_entry->prev = curr;
@@ -59,12 +62,14 @@ void init_cache() {
         blank_entry = (cache_entry *)malloc(sizeof(cache_entry));
         blank_entry->tag = 0;
         blank_entry->valid = 0;
+        blank_entry->dirty = 0;
         l1_dcache[i] = blank_entry;
         curr = l1_dcache[i];
         for (j = 0; j < l1_cache_assoc-1; j++) {
             blank_entry = (cache_entry *)malloc(sizeof(cache_entry));
             blank_entry->tag = 0;
             blank_entry->valid = 0;
+            blank_entry->dirty = 0;
             curr->next = blank_entry;
             curr->next->prev = curr;
             curr = curr->next;
@@ -76,12 +81,14 @@ void init_cache() {
         blank_entry = (cache_entry *)malloc(sizeof(cache_entry));
         blank_entry->tag = 0;
         blank_entry->valid = 0;
+        blank_entry->dirty = 0;
         l2_cache[i] = blank_entry;
         curr = l2_cache[i];
         for (j = 0; j < l2_cache_assoc-1; j++) {
             blank_entry = (cache_entry *)malloc(sizeof(cache_entry));
             blank_entry->tag = 0;
             blank_entry->valid = 0;
+            blank_entry->dirty = 0;
             curr->next = blank_entry;
             curr->next->prev = curr;
             curr = curr->next;
@@ -96,15 +103,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
     unsigned long long int dirtyAddressl1;
     unsigned long long int dirtyAddressl2;
 
-    // printf("WA Start Address: %Lx\n", waStartAddress);
-    // printf("End Address: %Lx\n", endAddress); 
-
-    if (byteSize > 16){
-        printf("Didn't expect this...\n");
-    }
-
     switch(op){
-        printf("Address: %Lx Type: %c ByteRefs: %d\n",addr,op,byteSize);
         case 'I':
         inst_refs++;
         flush_counter++;
@@ -116,18 +115,8 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
         read_refs++;
     }
 
-
-    if (((flush_counter % (380000ul)) == 0) && flush_counter != 0){
-        flush_counter = 0;
-        flush();
-    }
-
-    // printf("-------------------------------------------\n");
-    // printf("Address: %Lx Type: %c BSize: %d\n", addr, op, byteSize );
-
     while(waStartAddress <= endAddress) {
         //Perform Access Based on Operation
-        // printf("Current Address Access: %Lx \n", waStartAddress);
         switch(op){
             case 'I':
                 if(!check_inst_cache(waStartAddress)){
@@ -143,8 +132,8 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                         inst_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
 
                         if (is_dirtykickout_l2(waStartAddress)){
-                            execution_time += MEM_TO_L2;
-                            inst_cycle += MEM_TO_L2;
+                            execution_time += MEM_TO_L2 + L2_HIT_TIME;
+                            inst_cycle += MEM_TO_L2 + L2_HIT_TIME;
                             l2_transfers++;      
                         }
 
@@ -176,7 +165,6 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                     write_cycle += L1_MISS_TIME;
                     l1_dtransfers++;
 
-
                     dirtyAddressl1 = is_dirtykickout_l1(waStartAddress);
                     dirtyAddressl2 = is_dirtykickout_l2(dirtyAddressl1);
 
@@ -194,21 +182,22 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                                 execution_time += MEM_TO_L2;
                                 write_cycle += MEM_TO_L2;
                             }
-                            l2_misses++;
+                            // l2_misses++;
                             insert_l2(dirtyAddressl1, 1);
-                            // execution_time += L2_TO_L1 + L2_HIT_TIME;
-                            // write_cycle += L2_TO_L1 + L2_HIT_TIME;
+                            execution_time += L2_TO_L1 + L2_HIT_TIME;
+                            write_cycle += L2_TO_L1 + L2_HIT_TIME;
                         }
                     }
 
-                    //  dirtyAddressl2 = is_dirtykickout_l2(waStartAddress);
-
-                    // if (dirtyAddressl2){
-                    //     execution_time += MEM_TO_L2;
-                    //     write_cycle += MEM_TO_L2;
-                    // }
-
                     if (!check_l2_cache(waStartAddress)){
+ 
+                        dirtyAddressl2 = is_dirtykickout_l2(waStartAddress);
+
+                        if (dirtyAddressl2){
+                            execution_time += MEM_TO_L2;
+                            write_cycle += MEM_TO_L2;
+                        }
+
                         //Execution Time from MM
                         l2_misses++;
                         l2_transfers++;
@@ -260,36 +249,37 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                                 execution_time += MEM_TO_L2;
                                 read_cycle += MEM_TO_L2;
                             }
-                            // l2_misses++;
+
                             insert_l2(dirtyAddressl1, 1);
-                            // execution_time += L2_TO_L1 + L2_HIT_TIME;
-                            // read_cycle += L2_TO_L1 + L2_HIT_TIME;
+                            execution_time += L2_TO_L1 + L2_HIT_TIME;
+                            read_cycle += L2_TO_L1 + L2_HIT_TIME;
                         }
                     }
 
-                    // dirtyAddressl2 = is_dirtykickout_l2(waStartAddress);
-
-                    // if (dirtyAddressl2){
-                    //     execution_time += MEM_TO_L2;
-                    //     read_cycle += MEM_TO_L2;
-                    // }
-
                     //Insert New Address   
                     if (!check_l2_cache(waStartAddress)){
+
+                        dirtyAddressl2 = is_dirtykickout_l2(waStartAddress);
+
+                        if (dirtyAddressl2){
+                            execution_time += MEM_TO_L2;
+                            read_cycle += MEM_TO_L2;
+                        }
+                        
                         l2_misses++;
                         l2_transfers++;
                         // printf("L2 MISS\n");
                         execution_time += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
                         read_cycle += L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
                         insert_l2(waStartAddress, 0);
-                        read_data(waStartAddress, 0);
+                        read_data(waStartAddress);
                         //Execution Time from MM
                     } else {
                         l2_hits ++;
                         // printf("L2 HIT\n");
                         execution_time += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
                         read_cycle += L2_HIT_TIME + L2_TO_L1 + L1_HIT_TIME;
-                        read_data(waStartAddress, is_dirty_l2(waStartAddress));
+                        read_data(waStartAddress);
                         adjust_LRU_l2(waStartAddress);
                         //Execution Time from L2
                     }
@@ -308,6 +298,11 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
         waStartAddress += 4;
     } 
 
+    if (((flush_counter % (380000ul)) == 0) && flush_counter != 0){
+        flush_counter = 0;
+       flush();
+    }
+
     // printf("Simulated Time: %Lu\n", execution_time);   
     // printf("------------------------------------------------------\n");
 }
@@ -318,6 +313,7 @@ void flush() {
     invalidates ++;
     int i;
     cache_entry *curr;
+    flush_active = 1;
 
     //L1 flush
     for (i = 0; i < l1_cache_lines; i++){
@@ -332,15 +328,24 @@ void flush() {
     for (i = 0; i < l1_cache_lines; i++){
         curr = l1_dcache[i];
         while(curr != NULL){
-            curr->valid = 0;
             if (curr->dirty == 1){
-                if (is_dirty_l2(curr->address)){
-                    flush_time += MEM_TO_L2;
+                
+                if (check_l2_cache(curr->address)){
+                    mark_dirty_l2(curr->address);
+                } else {
+                    if (is_dirtykickout_l2(curr->address)){
+                        flush_time += MEM_TO_L2;
+                        l2_transfers++;
+                    }
+                    insert_l2(curr->address, curr->dirty);
                 }
-                insert_l2(curr->address, curr->dirty);
+
+                l1_dtransfers++;
                 flush_time += L2_TO_L1;
                 l1_dkickouts_flush++;
             }
+            curr->valid = 0;
+            curr->dirty = 0;
             curr = curr->next;
         }
     }
@@ -349,14 +354,18 @@ void flush() {
     for (i = 0; i < l2_cache_lines; i++){
         curr = l2_cache[i];
         while(curr != NULL){
-            curr->valid = 0;
             if (curr->dirty == 1){
                 flush_time += MEM_TO_L2;
+                l2_transfers++;
                 l2_kickouts_flush++;
             }
+            curr->valid = 0;            
+            curr->dirty = 0;
             curr = curr->next;
         }
     }
+
+    flush_active = 0;
 }
 
 void insert_inst(unsigned long long int addr) {
@@ -427,14 +436,10 @@ void write_data(unsigned long long int addr) {
             tag = addr >> shift_amount_l1;
 
             //Insert Into L2 W is Dirty
-            // printf("Found a Valid Entry! Dirty: %d Address: %Lx\n", l1_dcache[index]->dirty, l1_dcache[index]->address  );
             if (l1_dcache[index]->dirty && l1_dcache[index]->valid){
-                // insert_l2(l1_dcache[index]->address, l1_dcache[index]->dirty);
-                // printf("L1 Dirty Kickout: %Lx \n", l1_dcache[index]->address );
                 l1_dkickouts_dirty++;
                 l1_dkickouts++;
             } else if (l1_dcache[index]->valid){
-                // printf("L1 Kickout: %Lx \n", l1_dcache[index]->tag );
                 l1_dkickouts++;
             }
             l1_dcache[index]->tag = tag;
@@ -473,7 +478,6 @@ void write_data(unsigned long long int addr) {
                 if (curr->valid != 0 && curr->dirty){
                     l1_dkickouts_dirty++;
                     l1_dkickouts++;
-                    // insert_l2(curr->address, curr->dirty);
                 } else if (curr->valid){
                     l1_dkickouts++;
                 }
@@ -484,11 +488,11 @@ void write_data(unsigned long long int addr) {
             } 
             break;
         default:
-            printf("Full Associative Write Data\n");
+            printf("The Aliens Came!\n");
     }
 }
 
-void read_data(unsigned long long int addr, int dirty) {
+void read_data(unsigned long long int addr) {
 
     int index;
     unsigned long long int tag;
@@ -513,7 +517,7 @@ void read_data(unsigned long long int addr, int dirty) {
             // printf("Insert Into L2 R\n");
             l1_dcache[index]->tag = tag;
             l1_dcache[index]->address = addr;
-            l1_dcache[index]->dirty = dirty;
+            l1_dcache[index]->dirty = 0;
             l1_dcache[index]->valid = 1;
             break;
         case 2:
@@ -525,7 +529,7 @@ void read_data(unsigned long long int addr, int dirty) {
             if(l1_dcache[index]->valid == 0){
                 l1_dcache[index]->tag = tag;
                 l1_dcache[index]->address = addr;
-                l1_dcache[index]->dirty = dirty;
+                l1_dcache[index]->dirty = 0;
                 l1_dcache[index]->valid = 1;
             } else {
                 curr = l1_dcache[index];
@@ -534,7 +538,7 @@ void read_data(unsigned long long int addr, int dirty) {
                 new->tag = tag;
                 new->address = addr;
                 new->valid = 1;
-                new->dirty = dirty;
+                new->dirty = 0;
                 new->next = curr;
                 curr->prev = new;
 
@@ -575,12 +579,10 @@ void insert_l2(unsigned long long int addr, int dirty) {
             index = (addr >> L2_OFFSET) & (l2_cache_lines-1); //cachelined - 1
             tag = addr >> shift_amount_l2;
 
-            if (l2_cache[index]->dirty && l2_cache[index]->valid){
-                // printf("Found Dirty Address L2: %Lx\n", l2_cache[index]->address);
+            if (l2_cache[index]->dirty && l2_cache[index]->valid && !flush_active){
                 l2_kickouts_dirty++;
                 l2_kickouts++;
-            } else if (l2_cache[index]->valid) {
-                // printf("Found Address to Kickout L2: %Lx\n", l2_cache[index]->address);
+            } else if (l2_cache[index]->valid && !flush_active) {
                 l2_kickouts++;
             }
 
@@ -617,10 +619,10 @@ void insert_l2(unsigned long long int addr, int dirty) {
                         curr = curr->next;
                     }
 
-                    if (curr->dirty && curr->valid){
+                    if (curr->dirty && curr->valid && !flush_active){
                         l2_kickouts_dirty++;
                         l2_kickouts++;
-                    } else if (curr->valid){
+                    } else if (curr->valid && !flush_active){
                         l2_kickouts++;
                     }
 
@@ -747,8 +749,7 @@ unsigned long long int is_dirtykickout_l2(unsigned long long int addr){
     switch(l2_cache_assoc){
         case 1:
             index = (addr >> L2_OFFSET) & (l2_cache_lines-1); //cachelined - 1
-            // printf("Is Dirty L2? %Lx\n", l2_cache[index]->dirty ? l2_cache[index]->address: 0);
-            return l2_cache[index]->dirty ? l2_cache[index]->address: 0;
+            return (l2_cache[index]->dirty && l2_cache[index]->valid) ? l2_cache[index]->address: 0;
             break;
         case 2:
         case 4:
@@ -761,52 +762,13 @@ unsigned long long int is_dirtykickout_l2(unsigned long long int addr){
                     curr = curr->next;
                 }
             }
-            return curr->dirty ? curr->address: 0;
+            return (curr->dirty && curr->valid) ? curr->address: 0;
             break;
         default: 
             printf("This shouldn't have happend! \n");
     }
     return -1;
 }   
-
-int is_dirty_l2(unsigned long long int addr){
-
-    int index;
-    unsigned long long int tag;
-    cache_entry * curr;
-    int i;
-
-    switch(l2_cache_assoc){
-        case 1:
-            index = (addr >> L2_OFFSET) & (l2_cache_lines-1); //cachelined - 1
-            // printf("Is Dirty L2? %Lx\n", l2_cache[index]->dirty ? l2_cache[index]->address: 0);
-            if (l2_cache[index]->dirty){
-                return 1;
-            }
-            return 0;
-            break;
-        case 2:
-        case 4:
-        case 8:
-        case 256:
-            index = (addr >> L2_OFFSET) & (l2_cache_lines-1); //cachelined - 1
-            tag = addr >> shift_amount_l2;
-            curr = l2_cache[index];
-            for (i = 0; i < l2_cache_assoc; i++){
-                if (curr->tag == tag && curr->valid && curr->dirty){
-                    return 1;
-                }
-                if (curr->next != NULL){
-                    curr = curr->next;
-                }
-            }
-            return 0;
-            break;
-        default: 
-            printf("This shouldn't have happend! \n");
-    }
-    return -1;
-}
 
 unsigned long long int is_dirtykickout_l1(unsigned long long int addr){
 
@@ -818,7 +780,7 @@ unsigned long long int is_dirtykickout_l1(unsigned long long int addr){
         case 1:
             index = (addr >> L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
             // printf("Is Dirty L1? %Lx \n", l1_dcache[index]->dirty? l1_dcache[index]->address: 0 );
-            return l1_dcache[index]->dirty? l1_dcache[index]->address: 0;
+            return (l1_dcache[index]->dirty && l1_dcache[index]->valid)? l1_dcache[index]->address: 0;
             break;
         case 2:
         case 4:
@@ -831,46 +793,7 @@ unsigned long long int is_dirtykickout_l1(unsigned long long int addr){
                     curr = curr->next;
                 }
             }
-            return curr->dirty ? curr->address: 0;
-            break;
-        default: 
-            printf("This shouldn't have happend! \n");
-    }
-    return -1;
-}
-
-int is_dirty_l1(unsigned long long int addr){
-
-    int index;
-    unsigned long long int tag;
-    cache_entry * curr;
-    int i;
-
-    switch(l1_cache_assoc){
-        case 1:
-            index = (addr >> L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
-            // printf("Is Dirty L1? %Lx\n", l1_cache[index]->dirty ? l2_cache[index]->address: 0);
-            if (l1_dcache[index]->dirty){
-                return 1;
-            }
-            return 0;
-            break;
-        case 2:
-        case 4:
-        case 8:
-        case 256:
-            index = (addr >> L1_OFFSET) & (l1_cache_lines-1); //cachelined - 1
-            tag = addr >> shift_amount_l1;
-            curr = l1_dcache[index];
-            for (i = 0; i < l1_cache_assoc; i++){
-                if (curr->tag == tag && curr->valid){
-                    return 1;
-                }
-                if (curr->next != NULL){
-                    curr = curr->next;
-                }
-            }
-            return 0;
+            return (curr->dirty && curr->valid) ? curr->address: 0;
             break;
         default: 
             printf("This shouldn't have happend! \n");
@@ -1248,63 +1171,63 @@ void print_stats() {
     printf("\n");
     printf("Memory Level:  L1i\n");
 
-    for (i = 0; i < l1_cache_lines; i++){
-        curr = l1_icache[i];
-        if (curr->valid != 0){
-            printf("Index:  %3x",i);
-            printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
-            curr = curr->next;
-            while (curr != NULL) {
-                if (!curr->valid){
-                    printf(" | V:0 D:0 Tag: - ");
-                } else {
-                    printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
-                }
-                curr = curr->next;
-            }   
-            printf("\n");
-        }
-    }
+    // for (i = 0; i < l1_cache_lines; i++){
+    //     curr = l1_icache[i];
+    //     if (curr->valid != 0){
+    //         printf("Index:  %3x",i);
+    //         printf(" | V:%d D:%d Tag: %11Lx ", curr->valid, curr->dirty, curr->tag);
+    //         curr = curr->next;
+    //         while (curr != NULL) {
+    //             if (!curr->valid){
+    //                 printf(" | V:0 D:0 Tag: - ");
+    //             } else {
+    //                 printf(" | V:%d D:%d Tag: %11Lx ", curr->valid, curr->dirty, curr->tag);
+    //             }
+    //             curr = curr->next;
+    //         }   
+    //         printf("\n");
+    //     }
+    // }
 
-    printf("\n");
-    printf("Memory Level:  L1d\n");
-    for (i = 0; i < l1_cache_lines; i++){
-        curr = l1_dcache[i];
-        if (curr->valid != 0){
-            printf("Index:  %3x",i);
-            printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
-            curr = curr->next;
-            while (curr != NULL) {
-                if (!curr->valid){
-                    printf(" | V:0 D:0 Tag:- ");
-                } else {
-                    printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
-                }
-                curr = curr->next;
-            }   
-            printf("\n");
-        }
-    }
+    // printf("\n");
+    // printf("Memory Level:  L1d\n");
+    // for (i = 0; i < l1_cache_lines; i++){
+    //     curr = l1_dcache[i];
+    //     if (curr->valid != 0){
+    //         printf("Index:  %3x",i);
+    //         printf(" | V:%d D:%d Tag: %11Lx ", curr->valid, curr->dirty, curr->tag);
+    //         curr = curr->next;
+    //         while (curr != NULL) {
+    //             if (!curr->valid){
+    //                 printf(" | V:0 D:0 Tag:- ");
+    //             } else {
+    //                 printf(" | V:%d D:%d Tag: %11Lx ", curr->valid, curr->dirty, curr->tag);
+    //             }
+    //             curr = curr->next;
+    //         }   
+    //         printf("\n");
+    //     }
+    // }
 
-    printf("\n");
-    printf("Memory Level:  L2\n");
-    for (i = 0; i < l2_cache_lines; i++){
-        curr = l2_cache[i];
-        if (curr->valid != 0){
-            printf("Index:  %3x",i);
-            printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
-            curr = curr->next;
-            while (curr != NULL) {
-                if (!curr->valid){
-                    printf(" | V:0 D:0 Tag: - ");
-                } else {
-                    printf(" | V:%d D:%d Tag:%9Lx ", curr->valid, curr->dirty, curr->tag);
-                }
-                curr = curr->next;
-            }   
-            printf("\n");
-        }
-    }
+    // printf("\n");
+    // printf("Memory Level:  L2\n");
+    // for (i = 0; i < l2_cache_lines; i++){
+    //     curr = l2_cache[i];
+    //     if (curr->valid != 0){
+    //         printf("Index:  %3x",i);
+    //         printf(" | V:%d D:%d Tag: %11Lx ", curr->valid, curr->dirty, curr->tag);
+    //         curr = curr->next;
+    //         while (curr != NULL) {
+    //             if (!curr->valid){
+    //                 printf(" | V:0 D:0 Tag: - ");
+    //             } else {
+    //                 printf(" | V:%d D:%d Tag: %11Lx ", curr->valid, curr->dirty, curr->tag);
+    //             }
+    //             curr = curr->next;
+    //         }   
+    //         printf("\n");
+    //     }
+    // }
 }
 
 /************************************************************/

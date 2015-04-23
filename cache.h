@@ -36,6 +36,8 @@ float avg_cyc_write;
 float avg_cyc_inst;
 float avg_cyc_read;
 
+int flush_active;
+
 unsigned long long int avg_cyc_exec_time;
 float avg_cyc_cpi;
 unsigned long long int avg_cyc_exec_misalign;
@@ -139,15 +141,13 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
 void flush();
 void insert_inst(unsigned long long int addr);
 void write_data(unsigned long long int addr);
-void read_data(unsigned long long int addr, int dirty);
+void read_data(unsigned long long int addr);
 void insert_l2(unsigned long long int addr, int dirty);
 int  check_inst_cache(unsigned long long int addr);
 int  check_data_cache(unsigned long long int addr);
 int  check_l2_cache(unsigned long long int addr);
 unsigned long long int  is_dirtykickout_l2(unsigned long long int addr);
 unsigned long long int  is_dirtykickout_l1(unsigned long long int addr);
-int  is_dirty_l2(unsigned long long int addr);
-int  is_dirty_l1(unsigned long long int addr);
 void mark_dirty_l1(unsigned long long int addr);
 void mark_dirty_l2(unsigned long long int addr);
 void adjust_LRU_l1i(unsigned long long int addr);
