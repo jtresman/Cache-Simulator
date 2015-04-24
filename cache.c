@@ -1137,11 +1137,11 @@ void print_stats() {
     printf("L2 cache cost = $%Lu;  Memory cost = $%Lu  Total cost = $%Lu\n",l2_cost,mem_cost,l1_icost + l1_dcost+l2_cost+mem_cost);
     printf("Flushes = %Lu : Invalidates = %Lu\n",flushes,invalidates);
 
-    printf("-------------------------------------------------------------\n");
-    printf("\n");
-    printf("Cache final contents - Index and Tag values are in HEX\n");
-    printf("\n");
-    printf("Memory Level:  L1i\n");
+    // printf("-------------------------------------------------------------\n");
+    // printf("\n");
+    // printf("Cache final contents - Index and Tag values are in HEX\n");
+    // printf("\n");
+    // printf("Memory Level:  L1i\n");
 
     // for (i = 0; i < l1_cache_lines; i++){
     //     curr = l1_icache[i];
