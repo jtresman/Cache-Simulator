@@ -36,8 +36,6 @@ float avg_cyc_write;
 float avg_cyc_inst;
 float avg_cyc_read;
 
-int flush_active;
-
 unsigned long long int avg_cyc_exec_time;
 float avg_cyc_cpi;
 unsigned long long int avg_cyc_exec_misalign;
