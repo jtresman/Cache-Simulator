@@ -102,7 +102,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
     unsigned long long int dirtyAddressl1;
     unsigned long long int dirtyAddressl2;
 
-    printf("Address: %Lx\n", addr );
+    // printf("Address: %Lx\n", addr );
 
     switch(op){
         case 'I':
@@ -118,7 +118,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
 
     while(waStartAddress <= endAddress) {
         //Perform Access Based on Operation
-        printf("Address Refernced: %Lx\n", waStartAddress);
+        // printf("Address Refernced: %Lx\n", waStartAddress);
         switch(op){
             case 'I':
                 if(!check_inst_cache(waStartAddress)){
@@ -183,8 +183,8 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                             if (dirtyAddressl2){
                                 execution_time += MEM_TO_L2;
                                 write_cycle += MEM_TO_L2;
-                                l2_transfers++;
                             }
+                            l2_transfers++;
                             l2_misses++;
                             insert_l2(dirtyAddressl1, 1);
                             execution_time += L2_TO_L1 + L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME;
@@ -251,8 +251,8 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                             if (dirtyAddressl2){
                                 execution_time += MEM_TO_L2;
                                 read_cycle += MEM_TO_L2;
-                                l2_transfers++;
                             }
+                            l2_transfers++;
                             insert_l2(dirtyAddressl1, 1);
                             execution_time += L2_TO_L1 + L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME;
                             read_cycle += L2_TO_L1 + L2_MISS_TIME + MEM_TO_L2 + L2_HIT_TIME;
@@ -268,6 +268,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                         if (dirtyAddressl2){
                             execution_time += MEM_TO_L2;
                             read_cycle += MEM_TO_L2;
+                            // l2_transfers++;
                         }
                         
                         l2_misses++;
@@ -302,12 +303,11 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
         waStartAddress += 4;
     } 
 
+    //Check if Flush is Necessary
     if (((flush_counter % (380000ul)) == 0) && flush_counter != 0){
        flush_counter = 0;
        flush();
     }
-
-    printf("Simulated Time: %Lu\n", execution_time);   
 }
 
 void flush() {
@@ -339,6 +339,7 @@ void flush() {
                     inst_cycle += L2_TO_L1 + L2_HIT_TIME;
                     execution_time += L2_TO_L1 + L2_HIT_TIME;
                     l2_hits ++;
+                    // l2_transfers++;
                 } else {
                     l2_misses++;
                     flush_time += MEM_TO_L2 + L2_MISS_TIME + L2_TO_L1;
@@ -352,6 +353,7 @@ void flush() {
                         l2_transfers++;
                     }
                     insert_l2(curr->address, 1);
+                    l2_transfers++;
                 }
 
                 l1_dtransfers++;
@@ -488,7 +490,7 @@ void write_data(unsigned long long int addr) {
                     curr = curr->next;
                 }
 
-                if (curr->valid != 0 && curr->dirty){
+                if (curr->valid && curr->dirty){
                     l1_dkickouts_dirty++;
                     l1_dkickouts++;
                 } else if (curr->valid){
