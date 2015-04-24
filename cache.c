@@ -136,7 +136,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                         if (is_dirtykickout_l2(waStartAddress)){
                             execution_time += MEM_TO_L2;
                             inst_cycle += MEM_TO_L2;
-                            l2_transfers++;      
+                            // l2_transfers++;      
                         }
 
                         insert_l2(waStartAddress,0);
@@ -183,6 +183,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                             if (dirtyAddressl2){
                                 execution_time += MEM_TO_L2;
                                 write_cycle += MEM_TO_L2;
+                                // l2_transfers++;
                             }
                             l2_transfers++;
                             l2_misses++;
@@ -199,6 +200,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                         if (dirtyAddressl2){
                             execution_time += MEM_TO_L2;
                             write_cycle += MEM_TO_L2;
+                            // l2_transfers++;
                         }
 
                         //Execution Time from MM
@@ -251,6 +253,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
                             if (dirtyAddressl2){
                                 execution_time += MEM_TO_L2;
                                 read_cycle += MEM_TO_L2;
+                                // l2_transfers++;
                             }
                             l2_transfers++;
                             insert_l2(dirtyAddressl1, 1);
@@ -339,7 +342,6 @@ void flush() {
                     inst_cycle += L2_TO_L1 + L2_HIT_TIME;
                     execution_time += L2_TO_L1 + L2_HIT_TIME;
                     l2_hits ++;
-                    // l2_transfers++;
                 } else {
                     l2_misses++;
                     flush_time += MEM_TO_L2 + L2_MISS_TIME + L2_TO_L1;
@@ -350,7 +352,7 @@ void flush() {
                         flush_time += MEM_TO_L2 + L2_HIT_TIME;
                         inst_cycle += MEM_TO_L2 + L2_HIT_TIME;
                         execution_time += MEM_TO_L2 + L2_HIT_TIME;
-                        l2_transfers++;
+                        // l2_transfers++;
                     }
                     insert_l2(curr->address, 1);
                     l2_transfers++;
@@ -1019,50 +1021,15 @@ void adjust_LRU_l2(unsigned long long int addr){
 
 void print_stats() {
 
-    int i;
-    int j;
-
     cache_entry *curr;
 
-    if(l1_cache_assoc == 2) {
-        i = 1;
-    }
+    double temp = (log ((double) l1_cache_assoc) / log (2.0));
 
-    if(l1_cache_assoc == 4) {
-        i = 2;
-    }
+    l1_icost = l1_dcost = 100*((l1_cache_size)/(4 * 1024)) + temp*100*((l1_cache_size)/(4 * 1024));
 
-    if(l1_cache_assoc == 8) {
-        i = 3;
-    }
+    temp = (log ((double) l2_cache_assoc) / log (2.0));
 
-    if(l1_cache_assoc == 256) {
-        i = 8;
-    }
-
-    else i = 0;
-
-    if(l2_cache_assoc == 2) {
-        j = 1;
-    }
-
-    if(l2_cache_assoc == 4) {
-        j = 2;
-    }
-
-    if(l2_cache_assoc == 8) {
-        j = 3;
-    }
-
-    if(l2_cache_assoc == 256) {
-        j = 8;
-    }
-
-    else j = 0;
-
-
-    l1_icost = l1_dcost = 100*((l1_cache_size)/(4 * 1024)) + i*100*((l1_cache_size)/(4 * 1024));
-    l2_cost = 50*((l2_cache_size*l2_cache_assoc)/(64 * 1024)) + j*50;
+    l2_cost = temp*l2_cache_size/(32*1024)*50 + l2_cache_size/(32*1024)*50;
 
     // default mem_ready cost is $50 and default mem_chunksize costs $25
     mem_cost = 75;
@@ -1083,16 +1050,6 @@ void print_stats() {
     l1_dmiss_rate = 100*(float)l1_dmisses / (float) (l1_dmisses+l1_dhits);
     l2_hit_rate   = 100*(float)l2_hits / (float) (l2_misses+l2_hits);
     l2_miss_rate  = 100*(float)l2_misses / (float) (l2_misses+l2_hits);
-
-    if(l1_cache_assoc != 1){
-        i = 1;
-    } else {
-        i = 0;  
-    } 
-
-    l1_icost = l1_dcost = 100*((l1_cache_size)/(4 * 1024)) + i*100*(l1_cache_assoc - (l1_cache_assoc/2))*((l1_cache_size)/(4 * 1024));
-    //TODO Fix L2 Cost Calc
-    l2_cost = 50*((l2_cache_size)/(64 * 1024)) + i*50*(l2_cache_assoc - (l1_cache_assoc/2)); 
 
     // default mem_ready cost is $50 and default mem_chunksize costs $25
     mem_cost = 75;
@@ -1119,6 +1076,9 @@ void print_stats() {
 
     avg_cyc_exec_time = 2*inst_refs + read_refs + write_refs;
     avg_cyc_cpi = (float)avg_cyc_exec_time/inst_refs;
+
+    avg_cyc_exec_misalign = ((l1_imisses+l1_ihits) + (l1_dhits+l1_dmisses)) + inst_refs;
+    avg_cyc_cpi_misalign = (float) avg_cyc_exec_misalign/inst_refs;
 
     printf("SIMULATION RESULTS\n");
     printf("\n");
