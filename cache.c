@@ -1089,23 +1089,23 @@ void print_stats() {
     printf("    Memory ready time = %d : chunksize = %d : chunktime = %d\n",MEM_READY,MEM_CHUNCKSIZE,MEM_CHUNKTIME);
     printf("\n");
 
-    printf("Execute time =   %7Lu;  Total refs = %7Lu\n",execution_time,read_refs+write_refs+inst_refs);
-    printf("Flush time =     %7Lu\n",flush_time);
+    printf("Execute time = %11Lu;  Total refs = %11Lu\n",execution_time,read_refs+write_refs+inst_refs);
+    printf("Flush time = %11Lu\n",flush_time);
     printf("Inst refs = %Lu;  Data refs = %Lu\n",inst_refs,read_refs+write_refs);
     printf("\n");
     printf("Number of reference types:  [Percentage]\n");
-    printf("    Reads  =        %7Lu [%3.1f%%]\n",read_refs, read_ref_perc);
-    printf("    Writes =        %7Lu [%3.1f%%]\n",write_refs, write_ref_perc);
-    printf("    Inst.  =        %7Lu [%3.1f%%]\n",inst_refs, inst_ref_perc);
-    printf("    Total  =        %7Lu\n",read_refs+write_refs+inst_refs);
+    printf("    Reads  = %11Lu [%3.1f%%]\n",read_refs, read_ref_perc);
+    printf("    Writes = %11Lu [%3.1f%%]\n",write_refs, write_ref_perc);
+    printf("    Inst.  = %11Lu [%3.1f%%]\n",inst_refs, inst_ref_perc);
+    printf("    Total  = %11Lu\n",read_refs+write_refs+inst_refs);
     printf("\n");
     printf("\n");
     printf("Total cycles for activities:  [Percentage]\n");
 
-    printf("    Reads  =         %7Lu  [%3.1f%%]\n",read_cycle, read_cycle_perc);
-    printf("    Writes =         %7Lu  [%3.1f%%]\n",write_cycle, write_cycle_perc);
-    printf("    Inst.  =         %7Lu  [%3.1f%%]\n",inst_cycle, inst_cycle_perc);
-    printf("    Total  =         %7Lu\n",read_cycle+write_cycle+inst_cycle);
+    printf("    Reads  = %11Lu  [%3.1f%%]\n",read_cycle, read_cycle_perc);
+    printf("    Writes = %11Lu  [%3.1f%%]\n",write_cycle, write_cycle_perc);
+    printf("    Inst.  = %11Lu  [%3.1f%%]\n",inst_cycle, inst_cycle_perc);
+    printf("    Total  = %11Lu\n",read_cycle+write_cycle+inst_cycle);
     printf("\n");
     printf("Average cycles per activity:\n");
     printf("    Read =  %3.1f; Write = %3.1f; Inst. = %3.1f\n",avg_cyc_read, avg_cyc_write,avg_cyc_inst);
