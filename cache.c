@@ -18,7 +18,7 @@
 
 /************************************************************/
 
-void init_cache() {
+inline void init_cache() {
 
     int i,j;
     l1_cache_lines = l1_cache_size/l1_cache_block_size/l1_cache_assoc;
@@ -95,7 +95,7 @@ void init_cache() {
     }
 }
 
-void perform_access(unsigned long long int addr, unsigned int byteSize, char op) {
+inline void perform_access(unsigned long long int addr, unsigned int byteSize, char op) {
 
     unsigned long long int endAddress = addr + (byteSize-1);
     unsigned long long int waStartAddress = (addr & 0xFFFFFFFFFFFC); //word aligned address
@@ -313,7 +313,7 @@ void perform_access(unsigned long long int addr, unsigned int byteSize, char op)
     }
 }
 
-void flush() {
+inline void flush() {
 
     flushes ++;
     invalidates ++;
@@ -385,7 +385,7 @@ void flush() {
     }
 }
 
-void insert_inst(unsigned long long int addr) {
+inline void insert_inst(unsigned long long int addr) {
 
     int index;
     unsigned long long int tag;
@@ -440,7 +440,7 @@ void insert_inst(unsigned long long int addr) {
     }
 }
 
-void write_data(unsigned long long int addr) {
+inline void write_data(unsigned long long int addr) {
 
     int index;
     unsigned long long int tag;
@@ -509,7 +509,7 @@ void write_data(unsigned long long int addr) {
     }
 }
 
-void read_data(unsigned long long int addr) {
+inline void read_data(unsigned long long int addr) {
 
     int index;
     unsigned long long int tag;
@@ -581,7 +581,7 @@ void read_data(unsigned long long int addr) {
     }
 }
 
-void insert_l2(unsigned long long int addr, int dirty) {
+inline void insert_l2(unsigned long long int addr, int dirty) {
 
     int index;
     unsigned long long int tag;
@@ -651,7 +651,7 @@ void insert_l2(unsigned long long int addr, int dirty) {
     }
 }
 
-int check_inst_cache(unsigned long long int addr){
+inline int check_inst_cache(unsigned long long int addr){
 
     int index;
     int i;
@@ -686,7 +686,7 @@ int check_inst_cache(unsigned long long int addr){
     return -1;
 }
 
-int check_data_cache(unsigned long long int addr){
+inline int check_data_cache(unsigned long long int addr){
 
     int index;
     unsigned long long int tag;
@@ -720,7 +720,7 @@ int check_data_cache(unsigned long long int addr){
     return -1;
 }
 
-int check_l2_cache(unsigned long long int addr){
+inline int check_l2_cache(unsigned long long int addr){
 
     int index;
     unsigned long long int tag;
@@ -754,7 +754,7 @@ int check_l2_cache(unsigned long long int addr){
     return -1;
 }
 
-unsigned long long int is_dirtykickout_l2(unsigned long long int addr){
+inline unsigned long long int is_dirtykickout_l2(unsigned long long int addr){
 
     int index;
     cache_entry * curr;
@@ -784,7 +784,7 @@ unsigned long long int is_dirtykickout_l2(unsigned long long int addr){
     return -1;
 }   
 
-unsigned long long int is_dirtykickout_l1(unsigned long long int addr){
+inline unsigned long long int is_dirtykickout_l1(unsigned long long int addr){
 
     int index;
     cache_entry * curr;
@@ -815,7 +815,7 @@ unsigned long long int is_dirtykickout_l1(unsigned long long int addr){
     return -1;
 }
 
-void mark_dirty_l1(unsigned long long int addr){
+inline void mark_dirty_l1(unsigned long long int addr){
 
     int index;
     unsigned long long int tag;
@@ -854,7 +854,7 @@ void mark_dirty_l1(unsigned long long int addr){
     }
 }
 
-void mark_dirty_l2(unsigned long long int addr){
+inline void mark_dirty_l2(unsigned long long int addr){
 
     int index;
     unsigned long long int tag;
@@ -889,7 +889,7 @@ void mark_dirty_l2(unsigned long long int addr){
     }
 }
 
-void adjust_LRU_l1i(unsigned long long int addr){
+inline void adjust_LRU_l1i(unsigned long long int addr){
 
     int index;
     unsigned long long int tag;
@@ -933,7 +933,7 @@ void adjust_LRU_l1i(unsigned long long int addr){
     }
 }
 
-void adjust_LRU_l1d(unsigned long long int addr){
+inline void adjust_LRU_l1d(unsigned long long int addr){
 
     int index;
     unsigned long long int tag;
@@ -977,7 +977,7 @@ void adjust_LRU_l1d(unsigned long long int addr){
     }
 }
 
-void adjust_LRU_l2(unsigned long long int addr){
+inline void adjust_LRU_l2(unsigned long long int addr){
 
     int index;
     unsigned long long int tag;
@@ -1019,7 +1019,7 @@ void adjust_LRU_l2(unsigned long long int addr){
     }
 }
 
-void print_stats() {
+inline void print_stats() {
 
     cache_entry *curr;
 
